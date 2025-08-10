@@ -1,0 +1,97 @@
+<!-- 首页 -->
+<view class="container home-container fade-in">
+  <!-- 用户信息区域 -->
+  <view class="header card">
+    <view class="header-content">
+      <image class="avatar" src="/assets/avatar-placeholder.png"></image>
+      <view class="user-info">
+        <text class="nickname title-medium">{{nickname}}</text>
+        <text class="welcome-text text-secondary">欢迎来到麻将记分</text>
+      </view>
+    </view>
+    <view class="header-decoration">
+      <text class="mahjong-emoji">🀫</text>
+    </view>
+  </view>
+
+  <!-- 快速操作区域 -->
+  <view class="quick-actions">
+    <view class="action-card card" bindtap="goInvite">
+      <view class="action-icon primary-bg">
+        <text class="icon-text">🎮</text>
+      </view>
+      <view class="action-content">
+        <text class="action-title title-small">开始计分</text>
+        <text class="action-desc text-secondary">邀请好友参与计分</text>
+      </view>
+      <view class="action-arrow">
+        <text class="arrow-text">›</text>
+      </view>
+    </view>
+
+    <view class="action-card card" bindtap="goRecords">
+      <view class="action-icon secondary-bg">
+        <text class="icon-text">📊</text>
+      </view>
+      <view class="action-content">
+        <text class="action-title title-small">历史记录</text>
+        <text class="action-desc text-secondary">查看往期对局</text>
+      </view>
+      <view class="action-arrow">
+        <text class="arrow-text">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 统计概览卡片 -->
+  <view class="stats-overview card">
+    <view class="stats-header">
+      <text class="stats-title title-medium">本月统计</text>
+      <text class="stats-period text-secondary">{{currentMonth}}</text>
+    </view>
+    <view class="stats-grid">
+      <view class="stat-item">
+        <text class="stat-number text-primary">{{monthStats.totalGames}}</text>
+        <text class="stat-label text-secondary">总场数</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number text-success">{{monthStats.winRate}}%</text>
+        <text class="stat-label text-secondary">胜率</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number {{monthStats.totalScore >= 0 ? 'text-success' : 'text-danger'}}">{{monthStats.totalScore}}</text>
+        <text class="stat-label text-secondary">总得分</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最近对局 -->
+  <view class="recent-games card" wx:if="{{recentGames.length > 0}}">
+    <view class="section-header">
+      <text class="section-title title-medium">最近对局</text>
+      <text class="more-link text-secondary" bindtap="goRecords">查看更多 ›</text>
+    </view>
+    <view class="games-list">
+      <block wx:for="{{recentGames}}" wx:key="id" wx:for-item="game">
+        <view class="game-item" data-id="{{game.id}}" bindtap="viewGameDetail">
+          <view class="game-info">
+            <text class="game-date text-secondary">{{game.date}}</text>
+            <text class="game-players text-primary">{{game.playersText}}</text>
+          </view>
+          <view class="game-result">
+            <text class="game-score {{game.myScore >= 0 ? 'text-success' : 'text-danger'}}">{{game.myScore >= 0 ? '+' : ''}}{{game.myScore}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 空状态 - 当没有最近对局时显示 -->
+  <view class="empty-games card" wx:else>
+    <view class="empty-state">
+      <text class="icon">🎯</text>
+      <text class="title">还没有对局记录</text>
+      <text class="desc">点击上方"开始计分"创建首局</text>
+    </view>
+  </view>
+</view>

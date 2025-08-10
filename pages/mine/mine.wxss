@@ -1,0 +1,426 @@
+/* mine.wxss - 我的页面样式 */
+
+.mine-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  padding-bottom: 40rpx;
+}
+
+/* ========== 用户信息卡片 ========== */
+.user-card {
+  padding: 24rpx;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-card::before {
+  content: '';
+  position: absolute;
+  top: -50rpx;
+  right: -50rpx;
+  width: 200rpx;
+  height: 200rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.user-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.user-avatar-section {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 3rpx solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-initial {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: white;
+}
+
+.user-badge {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  width: 32rpx;
+  height: 32rpx;
+  background: linear-gradient(135deg, var(--accent-color), #FFE135);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-text {
+  font-size: 16rpx;
+}
+
+.user-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.user-name {
+  color: white;
+}
+
+.user-title {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 24rpx;
+}
+
+.user-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.edit-profile-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+.btn-icon {
+  font-size: 18rpx;
+}
+
+.btn-text {
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+/* ========== 时间筛选器 ========== */
+.time-filter {
+  padding: 24rpx;
+}
+
+.filter-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  margin-bottom: 20rpx;
+}
+
+.filter-subtitle {
+  font-size: 24rpx;
+}
+
+.filter-controls {
+  display: flex;
+  gap: 16rpx;
+}
+
+.time-picker {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  padding: 20rpx;
+  background-color: var(--background-primary);
+  border: 2rpx solid var(--border-color);
+  border-radius: 12rpx;
+  transition: all 0.3s ease;
+  min-width: 160rpx;
+}
+
+.time-picker:active {
+  transform: scale(0.98);
+  border-color: var(--primary-color);
+}
+
+.picker-label {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.picker-value {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.value-text {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.picker-arrow {
+  font-size: 20rpx;
+  color: var(--text-light);
+}
+
+/* ========== 核心数据概览 ========== */
+.overview-card {
+  padding: 24rpx;
+}
+
+.overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.period-text {
+  font-size: 24rpx;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 20rpx 16rpx;
+  background-color: var(--background-primary);
+  border-radius: 16rpx;
+  border: 2rpx solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.metric-item:active {
+  transform: scale(0.95);
+  box-shadow: var(--shadow-light);
+}
+
+.metric-icon {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+}
+
+.games-icon {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+}
+
+.win-icon {
+  background: linear-gradient(135deg, var(--success-color), #2ECC71);
+}
+
+.rate-icon {
+  background: linear-gradient(135deg, var(--warning-color), #E67E22);
+}
+
+.score-icon {
+  background: linear-gradient(135deg, var(--accent-color), #FFE135);
+}
+
+.metric-value {
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.metric-label {
+  font-size: 22rpx;
+  text-align: center;
+}
+
+/* ========== 详细统计 ========== */
+.detailed-stats {
+  padding: 24rpx;
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.expand-hint {
+  font-size: 22rpx;
+}
+
+/* 详细数据网格 */
+.detailed-grid {
+  display: flex;
+  gap: 16rpx;
+}
+
+.detail-card {
+  flex: 1;
+  padding: 20rpx;
+  background-color: var(--background-primary);
+  border: 2rpx solid var(--border-color);
+  border-radius: 12rpx;
+}
+
+.detail-header {
+  margin-bottom: 16rpx;
+  text-align: center;
+}
+
+.detail-title {
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.detail-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.detail-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  padding: 12rpx 8rpx;
+  background-color: var(--background-secondary);
+  border-radius: 8rpx;
+}
+
+.detail-metric .metric-value {
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.detail-metric .metric-label {
+  font-size: 20rpx;
+  text-align: center;
+}
+
+/* ========== 对手统计 ========== */
+.opponent-stats {
+  padding: 24rpx;
+}
+
+.stats-subtitle {
+  font-size: 24rpx;
+  margin-top: 4rpx;
+}
+
+.opponent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.opponent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx;
+  background-color: var(--background-primary);
+  border-radius: 12rpx;
+  border: 2rpx solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.opponent-item:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-light);
+}
+
+.opponent-info {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.opponent-avatar {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.opponent-avatar .avatar-initial {
+  color: white;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.opponent-name {
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.opponent-score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2rpx;
+}
+
+.score-value {
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.score-value.positive {
+  color: var(--success-color);
+}
+
+.score-value.negative {
+  color: var(--danger-color);
+}
+
+.score-label {
+  font-size: 20rpx;
+}
+
+/* ========== 空状态 ========== */
+.empty-stats {
+  padding: 48rpx 32rpx;
+}
+
+.empty-state .empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 16rpx;
+}
+
+.empty-state .empty-title {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  margin-bottom: 8rpx;
+}
+
+.empty-state .empty-desc {
+  font-size: 24rpx;
+  color: var(--text-light);
+}

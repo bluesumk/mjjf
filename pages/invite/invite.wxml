@@ -1,0 +1,46 @@
+<!-- 邀请参与记分页面 -->
+<view class="container">
+  <!-- 参与者及台版开关 -->
+  <view class="participants-bar">
+    <view class="label">参与者</view>
+    <view class="switch-wrapper">
+      <text class="switch-label">台版</text>
+      <switch checked="{{taiSwitch}}" bindchange="onTaiSwitchChange"></switch>
+    </view>
+  </view>
+  <!-- 参与者头像列表 -->
+  <scroll-view scroll-x="true" class="avatar-list">
+    <view class="avatar-list-inner">
+      <block wx:for="{{participants}}" wx:key="index">
+        <view class="avatar-item">
+          <image class="avatar" src="/assets/avatar-placeholder.png"></image>
+          <text class="avatar-name">{{item.name}}</text>
+        </view>
+      </block>
+      <view class="avatar-item plus" bindtap="showAddModal">
+        <image class="plus-icon" src="/assets/plus.png"></image>
+      </view>
+    </view>
+  </scroll-view>
+  <!-- 二维码区域 -->
+  <view class="qr-section">
+    <image class="qr-image" src="/assets/qr-placeholder.png"></image>
+    <text class="qr-text">微信扫一扫二维码加入牌局</text>
+    <button size="mini" class="invite-btn" disabled>邀请加入</button>
+  </view>
+  <!-- 开始记分按钮 -->
+  <view class="start-btn-section">
+    <button type="primary" class="start-btn" bindtap="startScoring" disabled="{{participants.length === 0}}">开始计分</button>
+  </view>
+  <!-- 新增参与者弹窗 -->
+  <view wx:if="{{showAddModal}}" class="modal-overlay">
+    <view class="modal">
+      <view class="modal-title">添加参与者</view>
+      <input class="modal-input" placeholder="请输入姓名" value="{{newName}}" bindinput="inputChange"></input>
+      <view class="modal-buttons">
+        <button type="default" size="default" bindtap="cancelAdd">取消</button>
+        <button type="primary" size="default" bindtap="confirmAdd">确认</button>
+      </view>
+    </view>
+  </view>
+</view>

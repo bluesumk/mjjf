@@ -1,0 +1,58 @@
+<!-- 记录页面 -->
+<view class="container records-container fade-in">
+  <!-- 顶部 tab 切换 -->
+  <view class="tab-header">
+    <view class="tab-item {{activeTab === 'ongoing' ? 'active' : ''}}" 
+          data-tab="ongoing" bindtap="switchTab">
+      <text class="tab-text">进行中</text>
+    </view>
+    <view class="tab-item {{activeTab === 'finished' ? 'active' : ''}}" 
+          data-tab="finished" bindtap="switchTab">
+      <text class="tab-text">已结束</text>
+    </view>
+  </view>
+
+  <!-- 最近记录与年月选择 -->
+  <view class="record-header">
+    <text class="recent-title">最近记录</text>
+    <picker mode="multiSelector" range="{{timePickerRange}}" value="{{timePickerValue}}" bindchange="onTimeChange">
+      <view class="month-select">
+        <text>选择月份</text>
+        <image class="arrow-icon" src="/assets/arrow-down.png"></image>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 对局列表 -->
+  <view class="session-list">
+    <block wx:for="{{displayedSessions}}" wx:key="id">
+      <view class="session-item" data-id="{{item.id}}" data-status="{{item.status}}" bindtap="onSessionTap">
+        <!-- 删除按钮 -->
+        <image class="trash-icon" src="/assets/trash.png" 
+               data-id="{{item.id}}" bindtap="deleteSession" catchtap="true"></image>
+        
+        <!-- 玩家头像和分数 -->
+        <view class="players-row">
+          <block wx:for="{{item.status === 'finished' ? item.finalList : item.participantsList}}" wx:key="name" wx:for-item="player">
+            <view class="player">
+              <view class="player-avatar" style="background-color: {{player.avatarColor}}">
+                <text class="avatar-text">{{player.name === '台' ? '台' : player.name.charAt(0)}}</text>
+              </view>
+              <text class="player-score {{player.score >= 0 ? 'positive' : 'negative'}}">
+                {{player.score}}
+              </text>
+            </view>
+          </block>
+        </view>
+        
+        <!-- 日期时间 -->
+        <text class="session-date">{{item.displayDate}}</text>
+      </view>
+    </block>
+
+    <!-- 空状态 -->
+    <view wx:if="{{displayedSessions.length === 0}}" class="no-record">
+      <text>{{activeTab === 'ongoing' ? '暂无进行中的对局' : '暂无历史记录'}}</text>
+    </view>
+  </view>
+</view>

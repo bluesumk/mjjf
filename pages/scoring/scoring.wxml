@@ -1,0 +1,161 @@
+<!-- scoring.wxml - 记分页面 -->
+<view class="container scoring-container">
+  <!-- 输入阶段 -->
+  <view wx:if="{{stage === 'input'}}" class="input-stage">
+    <!-- 局数标题 -->
+    <view class="round-header">
+      <text class="round-title">第{{roundNumber}}局</text>
+    </view>
+
+    <!-- 计分表格 -->
+    <view class="scoring-table">
+      <!-- 表头 -->
+      <view class="table-header">
+        <view class="header-cell name-cell">名称</view>
+        <view class="header-cell role-cell">胜负</view>
+        <view class="header-cell score-cell">得分</view>
+      </view>
+
+      <!-- 玩家行 -->
+      <block wx:for="{{participants}}" wx:key="index">
+        <view class="table-row">
+          <!-- 玩家名称和头像 -->
+          <view class="name-cell">
+            <view class="player-avatar {{item === '台' ? 'tai-avatar' : ''}}">
+              <text class="avatar-text">{{item === '台' ? '台' : item.charAt(0)}}</text>
+            </view>
+            <text class="player-name">{{item}}</text>
+          </view>
+
+          <!-- 胜负选择 -->
+          <view class="role-cell">
+            <view class="role-buttons" wx:if="{{item !== '台'}}">
+              <view class="role-btn win-btn {{roles[index] === 'win' ? 'active' : ''}}" 
+                    data-index="{{index}}" data-role="win" bindtap="onRoleToggle">
+                <text class="role-text">胜</text>
+              </view>
+              <view class="role-btn lose-btn {{roles[index] === 'lose' ? 'active' : ''}}" 
+                    data-index="{{index}}" data-role="lose" bindtap="onRoleToggle">
+                <text class="role-text">负</text>
+              </view>
+            </view>
+            <text wx:else class="tai-no-role text-secondary">--</text>
+          </view>
+
+          <!-- 分数输入 -->
+          <view class="score-cell">
+            <block wx:if="{{index < participants.length - 1}}">
+              <input type="number" class="score-input {{item === '台' ? 'tai-input' : ''}}" 
+                     data-index="{{index}}" 
+                     value="{{scores[index]}}" 
+                     bindinput="{{item === '台' ? 'onTaiScoreInput' : 'onScoreInput'}}" 
+                     placeholder="0">
+              </input>
+            </block>
+            <block wx:else>
+              <text class="auto-score">{{scores[index] || 0}}</text>
+            </block>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-buttons">
+      <button type="primary" class="confirm-btn" bindtap="confirmScores" 
+              disabled="{{scoreSum !== 0 || hasEmpty}}">
+        确定
+      </button>
+      <button type="default" class="cancel-btn" bindtap="cancelInput">
+        取消
+      </button>
+    </view>
+  </view>
+
+  <!-- 单局统计阶段 -->
+  <view wx:elif="{{stage === 'summary'}}" class="summary-stage">
+    <view class="summary-header card">
+      <text class="summary-title title-large">第{{roundNumber - 1}}局结果</text>
+      <text class="summary-subtitle text-secondary">本局计分已完成</text>
+    </view>
+
+    <view class="summary-list">
+      <block wx:for="{{participants}}" wx:key="index">
+        <view class="summary-item card">
+          <view class="summary-player">
+            <text class="summary-name title-small">{{item}}</text>
+          </view>
+          <view class="summary-score {{summaryClasses[index]}}">
+            <text class="score-value">{{summaryScores[index] >= 0 ? '+' : ''}}{{summaryScores[index]}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="summary-actions">
+      <button type="primary" class="next-round-btn" bindtap="startNextRound">
+        <text class="btn-icon">▶</text>
+        <text class="btn-text">继续下局</text>
+      </button>
+      <button type="warn" class="finish-btn" bindtap="openMultiplierInput">
+        <text class="btn-icon">🏁</text>
+        <text class="btn-text">结束收盘</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 收盘完成阶段 -->
+  <view wx:elif="{{stage === 'final'}}" class="final-stage">
+    <view class="final-header card">
+      <text class="final-title title-large">🎉 对局结束</text>
+      <text class="final-subtitle text-secondary">最终成绩单</text>
+    </view>
+
+    <view class="final-list">
+      <block wx:for="{{finalList}}" wx:key="name" wx:for-index="rank">
+        <view class="final-item card">
+          <view class="rank-badge {{rank === 0 ? 'champion' : ''}}">
+            <text class="rank-number">{{rank + 1}}</text>
+          </view>
+          <view class="final-player">
+            <text class="final-name title-small">{{item.name}}</text>
+          </view>
+          <view class="final-score {{item.cls}}">
+            <text class="final-value">{{item.score >= 0 ? '+' : ''}}{{item.score}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="final-actions">
+      <button type="primary" class="home-btn" bindtap="goHome">
+        <text class="btn-icon">🏠</text>
+        <text class="btn-text">回到首页</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 倍数输入弹窗 -->
+  <view wx:if="{{showMultiplierInput}}" class="modal-overlay">
+    <view class="modal-container card">
+      <view class="modal-header">
+        <text class="modal-title title-medium">设置倍率</text>
+        <text class="modal-subtitle text-secondary">输入最终倍率（整数）</text>
+      </view>
+      
+      <view class="modal-body">
+        <input type="number" class="multiplier-input" 
+               bindinput="handleMultiplierInput" 
+               value="{{multiplierInput}}" 
+               placeholder="1">
+        </input>
+        <text class="multiplier-tip text-light">默认倍率为1，可输入其他整数</text>
+      </view>
+      
+      <view class="modal-actions">
+        <button type="default" class="modal-cancel" bindtap="cancelMultiplier">取消</button>
+        <button type="primary" class="modal-confirm" bindtap="confirmMultiplier">确认</button>
+      </view>
+    </view>
+  </view>
+</view>

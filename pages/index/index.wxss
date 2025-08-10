@@ -1,0 +1,266 @@
+/* 首页样式 */
+.home-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+/* 用户信息区域 */
+.header {
+  padding: 24rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100rpx;
+  height: 100rpx;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  border-radius: 50%;
+  opacity: 0.1;
+  transform: translate(30rpx, -30rpx);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--primary-color);
+  background-color: var(--background-secondary);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.welcome-text {
+  font-size: 24rpx;
+}
+
+.header-decoration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mahjong-emoji {
+  font-size: 48rpx;
+  opacity: 0.8;
+}
+
+/* 快速操作区域 */
+.quick-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 16rpx;
+}
+
+.action-card {
+  flex: 1;
+  padding: 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.action-card:active {
+  transform: scale(0.98);
+}
+
+.action-icon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.primary-bg {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+}
+
+.secondary-bg {
+  background: linear-gradient(135deg, var(--secondary-color), #FF8C42);
+}
+
+.icon-text {
+  font-size: 24rpx;
+}
+
+.action-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.action-title {
+  line-height: 1.2;
+}
+
+.action-desc {
+  font-size: 24rpx;
+  line-height: 1.2;
+}
+
+.action-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.arrow-text {
+  font-size: 32rpx;
+  color: var(--text-light);
+  font-weight: 300;
+}
+
+/* 统计概览 */
+.stats-overview {
+  padding: 24rpx;
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.stats-period {
+  font-size: 24rpx;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16rpx;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 8rpx;
+  background-color: var(--background-primary);
+  border-radius: 12rpx;
+  border: 2rpx solid var(--border-color);
+}
+
+.stat-number {
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  line-height: 1;
+}
+
+/* 最近对局 */
+.recent-games {
+  padding: 24rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.more-link {
+  font-size: 24rpx;
+  cursor: pointer;
+}
+
+.games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.game-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx;
+  background-color: var(--background-primary);
+  border-radius: 8rpx;
+  border: 2rpx solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.game-item:active {
+  transform: translateY(1rpx);
+  box-shadow: var(--shadow-light);
+}
+
+.game-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.game-date {
+  font-size: 22rpx;
+}
+
+.game-players {
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.game-result {
+  display: flex;
+  align-items: center;
+}
+
+.game-score {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+/* 空状态 */
+.empty-games {
+  padding: 24rpx;
+}
+
+.empty-state .icon {
+  font-size: 64rpx;
+  margin-bottom: 16rpx;
+}
+
+.empty-state .title {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  margin-bottom: 8rpx;
+}
+
+.empty-state .desc {
+  font-size: 24rpx;
+  color: var(--text-light);
+}

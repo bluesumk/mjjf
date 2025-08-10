@@ -1,0 +1,230 @@
+/* pages/session-detail/session-detail.wxss */
+
+.session-detail-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  padding-bottom: 140rpx; /* 为底部按钮留出空间 */
+}
+
+/* ========== 参与者区域 ========== */
+.participants-section {
+  padding: 24rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tai-switch {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.tai-label {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.switch-on {
+  width: 60rpx;
+  height: 32rpx;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  border-radius: 16rpx;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 4rpx;
+}
+
+.switch-dot {
+  width: 24rpx;
+  height: 24rpx;
+  background-color: white;
+  border-radius: 50%;
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+}
+
+/* 参与者网格 */
+.participants-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16rpx;
+  flex-wrap: wrap;
+}
+
+.participant-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+  min-width: 80rpx;
+}
+
+.participant-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-light);
+}
+
+.avatar-text {
+  color: white;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.participant-score {
+  font-size: 32rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.participant-score.positive {
+  color: #E74C3C; /* 红色表示正分 */
+}
+
+.participant-score.negative {
+  color: #27AE60; /* 绿色表示负分 */
+}
+
+/* ========== 对局记录区域 ========== */
+.rounds-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.round-card {
+  padding: 20rpx 24rpx;
+}
+
+.round-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.round-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.round-time {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+}
+
+/* 每局分数 */
+.round-scores {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.score-item {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 80rpx;
+}
+
+.score-value {
+  font-size: 32rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.score-value.positive {
+  color: #E74C3C; /* 红色表示正分 */
+}
+
+.score-value.negative {
+  color: #27AE60; /* 绿色表示负分 */
+}
+
+/* ========== 底部操作区域 ========== */
+.bottom-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--background-secondary);
+  padding: 20rpx;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.1);
+  border-top: 2rpx solid var(--border-color);
+}
+
+.session-status {
+  text-align: center;
+  margin-bottom: 16rpx;
+}
+
+.status-text {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.detail-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  color: white;
+  border: none;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  box-shadow: var(--shadow-medium);
+  transition: all 0.3s ease;
+}
+
+.detail-btn:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-light);
+}
+
+.btn-text {
+  color: white;
+}
+
+/* ========== 动画效果 ========== */
+.round-card {
+  animation: slideInUp 0.6s ease-out;
+}
+
+.round-card:nth-child(1) { animation-delay: 0.1s; }
+.round-card:nth-child(2) { animation-delay: 0.2s; }
+.round-card:nth-child(3) { animation-delay: 0.3s; }
+.round-card:nth-child(4) { animation-delay: 0.4s; }
+.round-card:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

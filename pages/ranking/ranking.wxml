@@ -1,0 +1,53 @@
+<!--pages/ranking/ranking.wxml-->
+<view class="ranking-container">
+  <!-- 标题区域 -->
+  <view class="ranking-header">
+    <text class="ranking-title">总分排行榜</text>
+    <view class="session-info">
+      <text class="original-info">原始分数</text>
+      <text class="multiplier-info">倍率</text>
+      <text class="final-info">最终分数</text>
+    </view>
+  </view>
+
+  <!-- 排行榜列表 -->
+  <view class="ranking-list">
+    <block wx:for="{{rankings}}" wx:key="name">
+      <view class="ranking-item card {{index < 3 ? 'top-rank' : ''}}">
+        <!-- 玩家信息 -->
+        <view class="player-info">
+          <view class="rank-badge {{index === 0 ? 'first' : index === 1 ? 'second' : index === 2 ? 'third' : ''}}">
+            <text wx:if="{{index === 0}}" class="rank-icon">🥇</text>
+            <text wx:elif="{{index === 1}}" class="rank-icon">🥈</text>
+            <text wx:elif="{{index === 2}}" class="rank-icon">🥉</text>
+            <text wx:else class="rank-number">{{index + 1}}</text>
+          </view>
+          
+          <view class="player-avatar {{item.name === '台' ? 'tai-avatar' : ''}}" style="background-color: {{item.color}}">
+            <text class="avatar-text">{{item.avatar}}</text>
+          </view>
+          
+          <text class="player-name">{{item.name}}</text>
+        </view>
+
+        <!-- 分数信息 -->
+        <view class="score-info">
+          <text class="original-score {{item.originalScore >= 0 ? 'positive' : 'negative'}}">
+            {{item.originalScore >= 0 ? '+' : ''}}{{item.originalScore}}
+          </text>
+          <text class="multiplier-value">×{{item.multiplier}}</text>
+          <text class="final-score {{item.finalScore >= 0 ? 'positive' : 'negative'}}">
+            {{item.finalScore >= 0 ? '+' : ''}}{{item.finalScore}}
+          </text>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 分享按钮 -->
+  <view class="share-section">
+    <button class="share-btn" bindtap="shareRanking">
+      <text class="share-text">分享排行榜</text>
+    </button>
+  </view>
+</view>

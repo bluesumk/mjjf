@@ -1,0 +1,159 @@
+/* records.wxss - 记录页面样式 */
+
+.records-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  padding-bottom: 40rpx;
+}
+
+/* Tab头部样式 */
+.tab-header {
+  display: flex;
+  justify-content: space-around;
+  padding: 12rpx 0;
+  background-color: #fff;
+  border-radius: 8rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.05);
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 8rpx 0;
+  font-size: 28rpx;
+  color: #666;
+}
+
+/* Tab 选中状态 */
+.tab-item.active {
+  color: #00b050;
+  font-weight: bold;
+  border-bottom: 4rpx solid #00b050;
+}
+
+/* 最近记录与月份选择 */
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 8rpx;
+  margin-bottom: 12rpx;
+}
+
+/* 最近记录标题 */
+.recent-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #00b050;
+}
+
+.month-select {
+  display: flex;
+  align-items: center;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.arrow-icon {
+  width: 24rpx;
+  height: 24rpx;
+  margin-left: 4rpx;
+}
+
+/* 对局列表 */
+.session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+/* 对局卡片 */
+.session-item {
+  background-color: #fff;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+}
+
+/* 玩家信息展示，水平平均分布 */
+.players-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 8rpx;
+  width: 100%;
+}
+
+.player {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.player-avatar {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 8rpx;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4rpx;
+}
+
+.avatar-text {
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: bold;
+}
+
+.player-score {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: bold;
+}
+
+.player-score.positive {
+  color: #e54d42;
+}
+
+.player-score.negative {
+  color: #00b050;
+}
+
+.player-score.ongoing {
+  color: #aaa;
+}
+
+/* 日期时间 */
+.session-date {
+  font-size: 22rpx;
+  color: #888;
+  text-align: center;
+  margin-top: 8rpx;
+  width: 100%;
+}
+
+/* 删除按钮样式 */
+.trash-icon {
+  width: 40rpx;
+  height: 40rpx;
+  position: absolute;
+  top: 12rpx;
+  right: 12rpx;
+}
+
+/* 空状态 */
+.no-record {
+  margin-top: 32rpx;
+  text-align: center;
+  color: #888;
+  font-size: 24rpx;
+}

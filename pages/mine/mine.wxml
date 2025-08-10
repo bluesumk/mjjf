@@ -1,0 +1,170 @@
+<!-- 我的页面 -->
+<view class="container mine-container fade-in">
+  <!-- 用户信息卡片 -->
+  <view class="user-card card">
+    <view class="user-header">
+      <view class="user-avatar-section">
+        <view class="user-avatar">
+          <text class="avatar-initial">{{nickname.charAt(0)}}</text>
+        </view>
+        <view class="user-badge">
+          <text class="badge-text">🏆</text>
+        </view>
+      </view>
+      <view class="user-details">
+        <text class="user-name title-large">{{nickname}}</text>
+        <text class="user-title text-secondary">麻将计分达人</text>
+      </view>
+    </view>
+    <view class="user-actions">
+      <button class="edit-profile-btn" size="mini" type="default">
+        <text class="btn-icon">✏️</text>
+        <text class="btn-text">编辑资料</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 时间筛选器 -->
+  <view class="time-filter card">
+    <view class="filter-title">
+      <text class="title-medium">数据统计</text>
+      <text class="filter-subtitle text-secondary">选择查看时间范围</text>
+    </view>
+    <view class="filter-controls">
+      <picker mode="selector" range="{{yearList}}" value="{{yearList.indexOf(selectedYear)}}" bindchange="onYearChange">
+        <view class="time-picker">
+          <text class="picker-label">年份</text>
+          <view class="picker-value">
+            <text class="value-text">{{selectedYear}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </view>
+      </picker>
+      <picker mode="selector" range="{{monthList}}" value="{{monthList.indexOf(selectedMonth)}}" bindchange="onMonthChange">
+        <view class="time-picker">
+          <text class="picker-label">月份</text>
+          <view class="picker-value">
+            <text class="value-text">{{selectedMonth}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 核心数据概览 -->
+  <view class="overview-card card">
+    <view class="overview-header">
+      <text class="section-title title-medium">核心数据</text>
+      <text class="period-text text-secondary">{{selectedYear}}年{{selectedMonth === '全部' ? '' : selectedMonth}}</text>
+    </view>
+    <view class="metrics-grid">
+      <view class="metric-item">
+        <view class="metric-icon games-icon">🎮</view>
+        <text class="metric-value text-primary">{{personalSummary.totalGames}}</text>
+        <text class="metric-label text-secondary">总场数</text>
+      </view>
+      <view class="metric-item">
+        <view class="metric-icon win-icon">🏆</view>
+        <text class="metric-value text-success">{{personalSummary.totalWins}}</text>
+        <text class="metric-label text-secondary">胜场</text>
+      </view>
+      <view class="metric-item">
+        <view class="metric-icon rate-icon">📊</view>
+        <text class="metric-value text-warning">{{personalSummary.winRate}}%</text>
+        <text class="metric-label text-secondary">胜率</text>
+      </view>
+      <view class="metric-item">
+        <view class="metric-icon score-icon">💰</view>
+        <text class="metric-value {{personalSummary.totalScore >= 0 ? 'text-success' : 'text-danger'}}">{{personalSummary.totalScore}}</text>
+        <text class="metric-label text-secondary">总得分</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 详细统计 -->
+  <view class="detailed-stats card">
+    <view class="stats-header">
+      <text class="section-title title-medium">详细统计</text>
+      <text class="expand-hint text-light">展开查看更多数据</text>
+    </view>
+    
+    <!-- 详细数据网格 -->
+    <view class="detailed-grid">
+      <!-- 基础数据卡片 -->
+      <view class="detail-card">
+        <view class="detail-header">
+          <text class="detail-title text-secondary">基础数据</text>
+        </view>
+        <view class="detail-metrics">
+          <view class="detail-metric">
+            <text class="metric-value text-danger">{{personalSummary.totalLosses}}</text>
+            <text class="metric-label text-light">总负场</text>
+          </view>
+          <view class="detail-metric">
+            <text class="metric-value text-success">{{personalSummary.totalWinScore}}</text>
+            <text class="metric-label text-light">总胜分</text>
+          </view>
+          <view class="detail-metric">
+            <text class="metric-value text-danger">{{personalSummary.totalLossScore}}</text>
+            <text class="metric-label text-light">总负分</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 倍率数据卡片 -->
+      <view class="detail-card">
+        <view class="detail-header">
+          <text class="detail-title text-secondary">倍率数据</text>
+        </view>
+        <view class="detail-metrics">
+          <view class="detail-metric">
+            <text class="metric-value {{personalSummary.totalMultiplierScore >= 0 ? 'text-success' : 'text-danger'}}">{{personalSummary.totalMultiplierScore}}</text>
+            <text class="metric-label text-light">倍率总分</text>
+          </view>
+          <view class="detail-metric">
+            <text class="metric-value text-success">{{personalSummary.totalMultiplierWinScore}}</text>
+            <text class="metric-label text-light">倍率胜分</text>
+          </view>
+          <view class="detail-metric">
+            <text class="metric-value text-danger">{{personalSummary.totalMultiplierLossScore}}</text>
+            <text class="metric-label text-light">倍率负分</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 对手统计 -->
+  <view class="opponent-stats card" wx:if="{{stats.length > 0}}">
+    <view class="stats-header">
+      <text class="section-title title-medium">对手统计</text>
+      <text class="stats-subtitle text-secondary">与各位玩家的对战记录</text>
+    </view>
+    <view class="opponent-list">
+      <block wx:for="{{stats}}" wx:key="name">
+        <view class="opponent-item">
+          <view class="opponent-info">
+            <view class="opponent-avatar">
+              <text class="avatar-initial">{{item.name.charAt(0)}}</text>
+            </view>
+            <text class="opponent-name text-primary">{{item.name}}</text>
+          </view>
+          <view class="opponent-score">
+            <text class="score-value {{item.cls}}">{{item.total >= 0 ? '+' : ''}}{{item.total}}</text>
+            <text class="score-label text-light">总分差</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-stats card" wx:else>
+    <view class="empty-state">
+      <text class="empty-icon">📈</text>
+      <text class="empty-title">暂无统计数据</text>
+      <text class="empty-desc">开始游戏后会显示详细统计</text>
+    </view>
+  </view>
+</view>

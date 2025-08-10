@@ -1,0 +1,62 @@
+<!--pages/session-detail/session-detail.wxml-->
+<view class="container session-detail-container fade-in">
+  <!-- 参与者信息 -->
+  <view class="participants-section card">
+    <view class="section-header">
+      <text class="section-title">参与者</text>
+      <view class="tai-switch" wx:if="{{sessionInfo.taiSwitch}}">
+        <text class="tai-label">台版</text>
+        <view class="switch-on">
+          <view class="switch-dot"></view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 参与者头像和累计分数 -->
+    <view class="participants-grid">
+      <block wx:for="{{participants}}" wx:key="name">
+        <view class="participant-item">
+          <view class="participant-avatar" style="background-color: {{item.avatarColor}}">
+            <text class="avatar-text">{{item.name === '台' ? '台' : item.name.charAt(0)}}</text>
+          </view>
+          <text class="participant-score {{item.totalScore >= 0 ? 'positive' : 'negative'}}">
+            {{item.totalScore >= 0 ? '' : ''}}{{item.totalScore}}
+          </text>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 对局记录列表 -->
+  <view class="rounds-section">
+    <block wx:for="{{rounds}}" wx:key="index">
+      <view class="round-card card">
+        <view class="round-header">
+          <text class="round-title">第{{rounds.length - index}}局</text>
+          <text class="round-time">{{item.displayTime}}</text>
+        </view>
+        
+        <!-- 每局分数 -->
+        <view class="round-scores">
+          <block wx:for="{{item.scoreList}}" wx:key="name" wx:for-item="score">
+            <view class="score-item">
+              <text class="score-value {{score.value >= 0 ? 'positive' : 'negative'}}">
+                {{score.value >= 0 ? '' : ''}}{{score.value}}
+              </text>
+            </view>
+          </block>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 底部操作 -->
+  <view class="bottom-actions">
+    <view class="session-status">
+      <text class="status-text">牌局已结束，点击查看牌局详情</text>
+    </view>
+    <button class="detail-btn" bindtap="viewRanking">
+      <text class="btn-text">查看牌局详情</text>
+    </button>
+  </view>
+</view>

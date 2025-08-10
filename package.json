@@ -1,0 +1,24 @@
+{
+  "name": "mahjong-scoring-miniprogram",
+  "version": "1.0.0",
+  "description": "微信麻将计分小程序",
+  "main": "app.js",
+  "scripts": {
+    "compress": "node scripts/compress.js",
+    "restore": "node scripts/compress.js --restore",
+    "build": "npm run compress",
+    "dev": "npm run restore"
+  },
+  "keywords": [
+    "miniprogram",
+    "mahjong",
+    "scoring",
+    "wechat"
+  ],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "devDependencies": {}
+}
