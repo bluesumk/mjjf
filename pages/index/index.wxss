@@ -2,7 +2,52 @@
 .home-container {
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 20rpx;
+}
+
+/* 文字样式类 */
+.title-medium {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.title-small {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-success {
+  color: var(--success-color);
+}
+
+.text-danger {
+  color: var(--danger-color);
+}
+
+/* 动画类 */
+.fade-in {
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 用户信息区域 */
@@ -34,12 +79,33 @@
   gap: 16rpx;
 }
 
+.avatar-container {
+  position: relative;
+}
+
 .avatar {
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
   border: 3rpx solid var(--primary-color);
   background-color: var(--background-secondary);
+}
+
+.default-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #007aff, #5ac8fa);
+  border: 3rpx solid var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-text {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: white;
 }
 
 .user-info {
@@ -182,14 +248,14 @@
 
 /* 最近对局 */
 .recent-games {
-  padding: 24rpx;
+  padding: 20rpx;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16rpx;
+  margin-bottom: 12rpx;
 }
 
 .more-link {
@@ -200,48 +266,128 @@
 .games-list {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: 8rpx;
 }
 
 .game-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16rpx;
   background-color: var(--background-primary);
-  border-radius: 8rpx;
-  border: 2rpx solid var(--border-color);
+  border-radius: 10rpx;
+  padding: 12rpx;
+  border: 1rpx solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
   transition: all 0.3s ease;
 }
 
 .game-item:active {
-  transform: translateY(1rpx);
-  box-shadow: var(--shadow-light);
+  transform: scale(0.98);
+  background-color: #f8f9fa;
 }
 
-.game-info {
+/* 状态标识 */
+.status-text {
+  font-size: 18rpx;
+  color: var(--text-light);
+  background-color: #f0f0f0;
+  padding: 0 4rpx;
+  border-radius: 4rpx;
+  margin-left: 8rpx;
+  display: inline-block;
+  line-height: 1.1;
+  vertical-align: baseline;
+}
+
+.status-ongoing {
+  color: #00b050;
+}
+
+.status-finished {
+  color: #666;
+}
+
+/* 玩家信息展示，水平平均分布 */
+.players-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+  margin: 2rpx 0;
+}
+
+.player {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4rpx;
+  align-items: center;
+  gap: 1rpx;
 }
 
-.game-date {
-  font-size: 22rpx;
+.player-avatar {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 6rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.game-players {
-  font-size: 26rpx;
-  font-weight: 500;
+.avatar-text {
+  color: #fff;
+  font-size: 18rpx;
+  font-weight: bold;
 }
 
-.game-result {
+.player-name {
+  font-size: 18rpx;
+  color: #333;
+  max-width: 60rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  margin-bottom: -1rpx;
+}
+
+.player-score {
+  font-size: 20rpx;
+  font-weight: normal;
+}
+
+.player-score.positive {
+  color: #e54d42;
+}
+
+.player-score.negative {
+  color: #00b050;
+}
+
+/* 底部信息 */
+.game-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 6rpx;
+  border-top: 1rpx solid var(--border-color);
+  margin-top: 2rpx;
+}
+
+.footer-left {
   display: flex;
   align-items: center;
 }
 
-.game-score {
-  font-size: 28rpx;
-  font-weight: 600;
+.game-date {
+  font-size: 20rpx;
+  color: var(--text-light);
+}
+
+.game-rounds {
+  font-size: 18rpx;
+  color: var(--text-light);
+  background-color: #f0f0f0;
+  padding: 1rpx 4rpx;
+  border-radius: 4rpx;
 }
 
 /* 空状态 */

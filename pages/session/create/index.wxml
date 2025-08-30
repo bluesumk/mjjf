@@ -1,4 +1,5 @@
-<!-- 邀请参与记分页面 -->
+<!-- pages/session/create/index.wxml -->
+<!-- 创建牌局页面 -->
 <view class="container">
   <!-- 参与者及台版开关 -->
   <view class="participants-bar">
@@ -8,6 +9,7 @@
       <switch checked="{{taiSwitch}}" bindchange="onTaiSwitchChange"></switch>
     </view>
   </view>
+  
   <!-- 参与者头像列表 -->
   <scroll-view scroll-x="true" class="avatar-list">
     <view class="avatar-list-inner">
@@ -22,6 +24,7 @@
       </view>
     </view>
   </scroll-view>
+  
   <!-- 二维码区域 -->
   <view class="qr-section">
     <!-- 二维码显示 -->
@@ -29,18 +32,18 @@
       <image wx:if="{{qrCodeUrl && !qrGenerating}}" class="qr-image" src="{{qrCodeUrl}}" mode="aspectFit"></image>
       <view wx:else class="qr-placeholder">
         <image class="placeholder-img" src="/assets/qr-placeholder.png"></image>
-        <text class="placeholder-text">{{qrError || '小程序码生成中...'}}</text>
+        <text class="placeholder-text">{{qrError || '二维码生成中...'}}</text>
       </view>
     </view>
     
     <!-- 二维码操作 -->
     <view class="qr-actions">
-      <text class="qr-text">{{qrCodeUrl ? '微信扫一扫小程序码加入牌局' : '小程序码生成失败，请使用下方邀请码'}}</text>
+      <text class="qr-text">微信扫一扫二维码加入牌局</text>
       <view class="qr-buttons">
         <button size="mini" class="refresh-btn" bindtap="refreshQRCode" disabled="{{qrGenerating}}">
-          {{qrGenerating ? '生成中...' : '重试'}}
+          {{qrGenerating ? '生成中...' : '刷新'}}
         </button>
-        <button size="mini" class="invite-btn" bindtap="shareInvite" disabled="{{!inviteCode}}">分享邀请</button>
+        <button size="mini" class="share-btn" open-type="share" disabled="{{!shareReady}}">分享邀请</button>
       </view>
     </view>
     
@@ -51,10 +54,12 @@
       <button size="mini" class="copy-btn" bindtap="copyInviteCode" disabled="{{!inviteCode}}">复制</button>
     </view>
   </view>
+  
   <!-- 开始记分按钮 -->
   <view class="start-btn-section">
     <button type="primary" class="start-btn" bindtap="startScoring" disabled="{{participants.length === 0}}">开始计分</button>
   </view>
+  
   <!-- 新增参与者弹窗 -->
   <view wx:if="{{showAddModal}}" class="modal-overlay">
     <view class="modal">
@@ -67,3 +72,4 @@
     </view>
   </view>
 </view>
+

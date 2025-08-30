@@ -96,7 +96,13 @@
   justify-content: flex-end;
 }
 
-.edit-profile-btn {
+.profile-edit-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.avatar-btn {
   background: rgba(255, 255, 255, 0.2);
   border: 2rpx solid rgba(255, 255, 255, 0.3);
   color: white;
@@ -105,6 +111,17 @@
   gap: 6rpx;
   padding: 8rpx 16rpx;
   border-radius: 8rpx;
+  font-size: 22rpx;
+}
+
+.nickname-input {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  text-align: center;
 }
 
 .btn-icon {

@@ -3,7 +3,12 @@
   <!-- 用户信息区域 -->
   <view class="header card">
     <view class="header-content">
-      <image class="avatar" src="/assets/avatar-placeholder.png"></image>
+      <view class="avatar-container">
+        <image wx:if="{{avatarUrl}}" class="avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+        <view wx:else class="avatar default-avatar">
+          <text class="avatar-text">{{nickname.charAt(0)}}</text>
+        </view>
+      </view>
       <view class="user-info">
         <text class="nickname title-medium">{{nickname}}</text>
         <text class="welcome-text text-secondary">欢迎来到麻将记分</text>
@@ -74,12 +79,30 @@
     <view class="games-list">
       <block wx:for="{{recentGames}}" wx:key="id" wx:for-item="game">
         <view class="game-item" data-id="{{game.id}}" bindtap="viewGameDetail">
-          <view class="game-info">
-            <text class="game-date text-secondary">{{game.date}}</text>
-            <text class="game-players text-primary">{{game.playersText}}</text>
+          <!-- 玩家头像和分数 -->
+          <view class="players-row">
+            <block wx:for="{{game.playersList}}" wx:key="name" wx:for-item="player">
+              <view class="player">
+                <view class="player-avatar" style="background-color: {{player.avatarColor}}">
+                  <text class="avatar-text">{{player.name === '台' ? '台' : player.name.charAt(0)}}</text>
+                </view>
+                <text class="player-name">{{player.name}}</text>
+                <text class="player-score {{player.score >= 0 ? 'positive' : 'negative'}}">
+                  {{player.score}}
+                </text>
+              </view>
+            </block>
           </view>
-          <view class="game-result">
-            <text class="game-score {{game.myScore >= 0 ? 'text-success' : 'text-danger'}}">{{game.myScore >= 0 ? '+' : ''}}{{game.myScore}}</text>
+          
+          <!-- 日期时间和局数、状态 -->
+          <view class="game-footer">
+            <view class="footer-left">
+              <text class="game-date">{{game.date}}</text>
+              <text class="status-text {{game.status === 'ongoing' ? 'status-ongoing' : 'status-finished'}}" style="height: -22rpx; display: block; box-sizing: border-box">
+                {{game.status === 'ongoing' ? '进行中' : '已结束'}}
+              </text>
+            </view>
+            <text class="game-rounds" wx:if="{{game.roundsCount > 0}}">{{game.roundsCount}}局</text>
           </view>
         </view>
       </block>
@@ -89,8 +112,8 @@
   <!-- 空状态 - 当没有最近对局时显示 -->
   <view class="empty-games card" wx:else>
     <view class="empty-state">
-      <text class="icon">🎯</text>
-      <text class="title">还没有对局记录</text>
+      <text class="icon">🀫</text>
+      <text class="title">等风来不如来开局</text>
       <text class="desc">点击上方"开始计分"创建首局</text>
     </view>
   </view>

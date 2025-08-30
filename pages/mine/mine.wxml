@@ -17,10 +17,20 @@
       </view>
     </view>
     <view class="user-actions">
-      <button class="edit-profile-btn" size="mini" type="default">
-        <text class="btn-icon">✏️</text>
-        <text class="btn-text">编辑资料</text>
-      </button>
+      <view class="profile-edit-section">
+        <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" style="position: relative; left: -214rpx; top: -114rpx; width: 164rpx; display: flex; box-sizing: content-box; height: 45rpx">
+          <text class="btn-icon">📷</text>
+          <text class="btn-text">更换头像</text>
+        </button>
+        <input style="width: 160rpx; display: block; box-sizing: border-box; height: 41rpx" 
+          class="nickname-input" 
+          type="nickname" 
+          placeholder="点击输入昵称" 
+          value="{{nickname}}" 
+          bindinput="onNicknameInput"
+          bindblur="onNicknameBlur"
+        />
+      </view>
     </view>
   </view>
 
@@ -32,7 +42,7 @@
     </view>
     <view class="filter-controls">
       <picker mode="selector" range="{{yearList}}" value="{{yearList.indexOf(selectedYear)}}" bindchange="onYearChange">
-        <view class="time-picker">
+        <view class="time-picker" style="width: 324rpx; display: flex; box-sizing: border-box">
           <text class="picker-label">年份</text>
           <view class="picker-value">
             <text class="value-text">{{selectedYear}}</text>
@@ -41,7 +51,7 @@
         </view>
       </picker>
       <picker mode="selector" range="{{monthList}}" value="{{monthList.indexOf(selectedMonth)}}" bindchange="onMonthChange">
-        <view class="time-picker">
+        <view class="time-picker" style="width: 329rpx; display: flex; box-sizing: border-box">
           <text class="picker-label">月份</text>
           <view class="picker-value">
             <text class="value-text">{{selectedMonth}}</text>

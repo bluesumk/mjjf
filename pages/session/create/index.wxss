@@ -1,0 +1,15 @@
+/* pages/session/create/index.wxss */
+/* 继承原有的invite页面样式 */
+@import "/pages/invite/invite.wxss";
+
+/* 分享按钮禁用状态样式 */
+.share-btn:disabled {
+  background-color: #f5f5f5 !important;
+  color: #cccccc !important;
+  border-color: #e0e0e0 !important;
+}
+
+.share-btn:disabled:hover {
+  background-color: #f5f5f5 !important;
+}
+

@@ -87,26 +87,115 @@
   flex-direction: column;
   align-items: center;
   margin-bottom: 40rpx;
+  padding: 20rpx;
+  background-color: #f9f9f9;
+  border-radius: 12rpx;
 }
-.qr-image {
+
+/* 二维码容器 */
+.qr-container {
   width: 300rpx;
   height: 300rpx;
   margin-bottom: 16rpx;
-  background-color: #f0f0f0;
+  border-radius: 8rpx;
+  overflow: hidden;
+  background-color: #fff;
+  border: 2rpx solid #e0e0e0;
 }
-/* 二维码下方提示文字 */
+
+.qr-image {
+  width: 100%;
+  height: 100%;
+}
+
+
+
+.qr-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+}
+
+.placeholder-img {
+  width: 120rpx;
+  height: 120rpx;
+  opacity: 0.5;
+  margin-bottom: 16rpx;
+}
+
+.placeholder-text {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 二维码操作区域 */
+.qr-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
 .qr-text {
   font-size: 26rpx;
   color: #00b050;
   margin-bottom: 12rpx;
 }
-/* 邀请加入按钮 */
-.invite-btn {
-  margin-top: 4rpx;
-  background-color: #fff;
+
+.qr-buttons {
+  display: flex;
+  gap: 16rpx;
+}
+
+.refresh-btn {
+  background-color: #f0f0f0;
   color: #666;
   border: 1rpx solid #ccc;
-  font-size: 26rpx;
+  font-size: 24rpx;
+}
+
+.invite-btn {
+  background-color: #00b050;
+  color: #fff;
+  font-size: 24rpx;
+}
+
+/* 邀请码区域 */
+.invite-code-section {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  padding: 12rpx 16rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #e0e0e0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.code-label {
+  font-size: 24rpx;
+  color: #666;
+  margin-right: 8rpx;
+}
+
+.invite-code {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  flex: 1;
+  text-align: center;
+  letter-spacing: 2rpx;
+}
+
+.copy-btn {
+  background-color: #007aff;
+  color: #fff;
+  font-size: 24rpx;
+  padding: 8rpx 16rpx;
 }
 
 .start-btn-section {
