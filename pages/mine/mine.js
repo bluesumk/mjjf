@@ -54,14 +54,43 @@ Page({
   /**
    * 页面显示时刷新数据
    */
-  onShow() {
-    // 回显：从全局或本地取资料
+  async onShow() {
     const app = getApp();
-    const prof = wx.getStorageSync('userProfile') || app.globalData?.userProfile || {};
-    this.setData({ 
-      avatarUrl: prof.avatarUrl, 
-      nickName: prof.nickName || prof.nickname || this.data.nickname 
-    });
+    try {
+      // 优先从云端获取资料
+      const { result } = await wx.cloud.callFunction({ 
+        name: 'profile', 
+        data: { action: 'get' } 
+      });
+      
+      let avatarUrl = result?.data?.avatarUrl || '';
+      
+      // 如果有云存储文件ID，转换为临时URL
+      if (result?.data?.avatarFileID) {
+        try {
+          const { fileList } = await wx.cloud.getTempFileURL({ 
+            fileList: [result.data.avatarFileID] 
+          });
+          avatarUrl = fileList?.[0]?.tempFileURL || avatarUrl;
+        } catch (e) {
+          console.warn('[MINE] 获取临时URL失败:', e);
+        }
+      }
+      
+      const nickName = result?.data?.nickName || 
+                      (wx.getStorageSync('userProfile')||{}).nickName || 
+                      app.globalData?.userProfile?.nickName || '';
+      
+      this.setData({ avatarUrl, nickName });
+    } catch (e) {
+      console.warn('[MINE] 云端数据获取失败，使用本地数据:', e);
+      // 回落到本地数据
+      const prof = wx.getStorageSync('userProfile') || app.globalData?.userProfile || {};
+      this.setData({ 
+        avatarUrl: prof.avatarUrl || '', 
+        nickName: prof.nickName || prof.nickname || this.data.nickname || ''
+      });
+    }
     this.refreshData();
   },
   

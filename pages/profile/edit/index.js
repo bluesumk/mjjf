@@ -12,8 +12,23 @@ Page({
         data: { action: 'get' }
       });
       if (result?.ok && result.data) {
+        let avatarUrl = result.data.avatarUrl || '';
+        
+        // 如果有云存储文件ID，转换为临时URL
+        if (result.data.avatarFileID) {
+          try {
+            const { fileList } = await wx.cloud.getTempFileURL({ 
+              fileList: [result.data.avatarFileID] 
+            });
+            avatarUrl = fileList?.[0]?.tempFileURL || avatarUrl;
+          } catch (e) {
+            console.warn('[PROFILE] 获取临时URL失败:', e);
+            avatarUrl = result.data.avatarFileID; // 回落到fileID
+          }
+        }
+        
         this.setData({ 
-          avatarUrl: result.data.avatarUrl || result.data.avatarFileID || '', 
+          avatarUrl, 
           nickName: result.data.nickName || '' 
         });
         return;
@@ -26,7 +41,7 @@ Page({
     const app = getApp();
     const prof = wx.getStorageSync('userProfile') || app.globalData?.userProfile || {};
     this.setData({ 
-      avatarUrl: prof.avatarUrl, 
+      avatarUrl: prof.avatarUrl || '', 
       nickName: prof.nickName || prof.nickname || '' 
     });
   },
