@@ -450,7 +450,7 @@
   padding: 24rpx;
   margin: 24rpx;
   border-radius: 24rpx;
-  background: linear-gradient(135deg, #F1FFF6 0%, #E6F7FF 100%);
+  background: #F5F6F7;
   box-shadow: 0 6rpx 16rpx rgba(0,0,0,.06);
 }
 
@@ -549,3 +549,8 @@
 .btn-text:active { 
   opacity: .9; 
 }
+
+/* --- BG: 页面底色统一为浅灰 --- */
+page { background: #F5F6F7; }
+/* 根容器/页面容器底色（仅作用于本页根容器） */
+.container, .mine-container { background: #F5F6F7 !important; }

@@ -174,3 +174,8 @@
   color: #888;
   font-size: 24rpx;
 }
+
+/* --- BG: 页面底色统一为浅灰 --- */
+page { background: #F5F6F7; }
+/* 根容器/页面容器底色（仅作用于本页根容器） */
+.container, .records-container { background: #F5F6F7 !important; }

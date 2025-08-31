@@ -27,7 +27,7 @@ page {
 /* 容器默认填充和背景 */
 .container {
   padding: 20rpx;
-  background: linear-gradient(135deg, var(--background-primary) 0%, #F0FFF0 100%);
+  background: #F5F6F7;
   min-height: 100vh;
   box-sizing: border-box;
 }
