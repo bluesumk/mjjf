@@ -13,11 +13,22 @@
   background-color: #f5f5f5 !important;
 }
 
-/* 分享按钮灰态样式 */
+/* 分享按钮灰态样式（占位，不影响主按钮） */
 .share-btn--disabled {
-  background: #E5E6EB !important;   /* 浅灰 */
-  color: #9AA1A9 !important;
-  border-color: #E5E6EB !important;
+  background: #E5E6EB;
+  color: #9AA1A9;
+}
+
+/* 抬层 + 保证可点 */
+.share-btn {
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+/* 让可能的覆盖层"不吃点" */
+.mask, .overlay, .qr-overlay, .card-mask {
+  pointer-events: none !important;
 }
 
 /* 调试分享按钮样式 */

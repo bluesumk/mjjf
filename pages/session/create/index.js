@@ -97,6 +97,9 @@ Page({
         shareReady: !!(sessionId && inviteToken)  // 保留旧逻辑
       }, () => {
         this.updateCanShare();              // 新增：有 sid/token 即允许分享
+        if (this.data.canShare && wx && wx.showShareMenu) {
+          wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
+        }
       });
 
       console.log('[CREATE] 生成邀请信息:', { sessionId, inviteToken, inviteCode });
@@ -381,13 +384,12 @@ Page({
    * QA-FIX: A3 统一 onShareAppMessage（仅一处）
    */
   onShareAppMessage() {
-    const ts = Date.now();
-    const { sessionId: sid, inviteToken: token, shareImageUrl } = this.data || {};
-    const p = `/pages/invite/join/index?sid=${encodeURIComponent(sid||this.data.sessionId||'')}&token=${encodeURIComponent(token||this.data.inviteToken||'')}`;
-    console.log('[SHARE] fired ts=', ts, 'path=', p, 'img=', shareImageUrl);
+    const { sid, token, shareImageUrl } = this.data || {};
+    const path = `/pages/invite/join/index?sid=${encodeURIComponent(sid||this.data.sessionId||'')}&token=${encodeURIComponent(token||this.data.inviteToken||'')}`;
+    console.log('[SHARE] fired', Date.now(), path, !!shareImageUrl);
     return {
       title: '邀请你加入麻将计分',
-      path: p,
+      path,
       imageUrl: shareImageUrl || '/assets/share-card.png'
     };
   },
@@ -397,13 +399,6 @@ Page({
    */
   onShow() {
     wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
-  },
-
-  /**
-   * 临时验证：分享按钮点击追踪
-   */
-  __tapShareBtn() {
-    console.log('[BTN] tapped', Date.now(), 'canShare=', this.data.canShare);
   }
 });
 
