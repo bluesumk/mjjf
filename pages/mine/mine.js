@@ -4,13 +4,13 @@ const app = getApp();
 Page({
   data: {
     // 新的月/年模式
-    mode: 'month',                  // 'month' | 'year'，默认 month
-    monthValue: '',                 // YYYY-MM，用于 date picker
-    monthLabel: '',                 // 展示用：YYYY-MM
+    mode: 'month',                  // 'month' | 'year'
+    monthValue: '',                 // YYYY-MM
+    monthLabel: '',
     yearOptions: [], 
     yearIndex: 0,
-    year: '',                       // 选中的年份
-    showYearPicker: false,
+    year: '', 
+    yearLabel: '',                  // 新增：显示在年份胶囊中的文案
     
     // 原有的年份列表（保留兼容）
     yearList: [],
@@ -71,7 +71,7 @@ Page({
       yearOptions: years,
       yearIndex: 0,
       year: years[0],
-      showYearPicker: false
+      yearLabel: years[0]
     }, this.updateRangeAndFetch);
   },
   
@@ -405,10 +405,12 @@ Page({
   onYearPicked(e) {
     const idx = Number(e.detail.value || 0);
     const year = this.data.yearOptions[idx];
+    // 进入 year 模式并更新胶囊文案
     this.setData({ 
       mode: 'year', 
       yearIndex: idx, 
-      year 
+      year, 
+      yearLabel: year 
     }, this.updateRangeAndFetch);
   },
 
@@ -425,7 +427,7 @@ Page({
     let start, end, groupBy = 'day';
 
     if (this.data.mode === 'month') {
-      const [y, m] = this.data.monthValue.split('-').map(n => Number(n));
+      const [y, m] = this.data.monthValue.split('-').map(Number);
       start = new Date(y, m-1, 1);
       end   = new Date(y, m,   0);
       groupBy = 'day';

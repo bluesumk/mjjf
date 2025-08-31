@@ -495,50 +495,57 @@
   opacity: .9;
 }
 
-/* 标题与控件区 */
+/* 标题与控件区：强制单行、等高、不换行 */
 .section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: flex; 
+  align-items: center; 
+  gap: 16rpx;
   margin: 16rpx 24rpx;
 }
 
-.title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #2b2f36;
+.title { 
+  flex: 1 1 auto; 
+  font-size: 32rpx; 
+  font-weight: 600; 
+  color: #2b2f36; 
 }
 
 .controls {
-  display: flex;
-  align-items: center;
+  flex: 0 0 auto; 
+  display: flex; 
+  align-items: center; 
   gap: 12rpx;
+  white-space: nowrap; 
+  flex-wrap: nowrap;
 }
 
-/* 胶囊与按钮统一高度，等高对齐 */
-.pill, .btn-link {
+/* 胶囊统一尺寸，避免 year 较短导致跳动 */
+.pill {
+  flex-shrink: 0;
+  min-width: 180rpx; 
   height: 56rpx; 
   line-height: 56rpx;
-  padding: 0 22rpx; 
-  border-radius: 999rpx;
-  display: inline-block; 
-  text-align: center; 
-  font-size: 28rpx;
-}
-
-.pill { 
+  padding: 0 18rpx; 
+  border-radius: 999rpx; 
+  text-align: center;
   border: 1rpx solid #e5e6eb; 
   background: #fff; 
   color: #333; 
-  min-width: 180rpx; 
+  font-size: 28rpx;
 }
 
-.btn-link {
-  border: 1rpx solid #e5e6eb; 
-  background: #fff;
-  color: #5E6C84;  /* 弱链接色，降低视觉强度 */
+/* 纯文字链接：无边框、无底色、弱色 */
+.btn-text {
+  flex-shrink: 0;
+  height: 56rpx; 
+  line-height: 56rpx; 
+  padding: 0 6rpx;
+  color: #5E6C84; 
+  background: transparent; 
+  border: none; 
+  font-size: 28rpx;
 }
 
-.btn-link:active { 
+.btn-text:active { 
   opacity: .9; 
 }
