@@ -48,22 +48,20 @@
     <view class="section-header">
       <text class="title">核心数据</text>
 
-      <view class="filters">
-        <view class="chip {{mode==='month_recent'?'active':''}}" bindtap="setModeRecent">最近自然月</view>
-        <view class="chip {{mode==='month'?'active':''}}" bindtap="setModeMonth">按月</view>
-        <view class="chip {{mode==='year'?'active':''}}" bindtap="setModeYear">按年</view>
-
-        <!-- 月份选择（仅在按月时显示） -->
-        <picker wx:if="{{mode==='month'}}" mode="selector" range="{{yearOptions}}" value="{{yearIndex}}" bindchange="onYearPick">
-          <view class="pill">{{year}}</view>
-        </picker>
-        <picker wx:if="{{mode==='month'}}" mode="selector" range="{{monthOptions}}" value="{{monthIndex}}" bindchange="onMonthPick">
-          <view class="pill">{{month}}</view>
+      <view class="controls">
+        <!-- 月份胶囊：使用 date picker fields=month，稳定不抖动 -->
+        <picker mode="date" fields="month" value="{{monthValue}}" bindchange="onMonthChange">
+          <view class="pill">{{ monthLabel }}</view>
         </picker>
 
-        <!-- 年份选择（仅在按年时显示） -->
-        <picker wx:if="{{mode==='year'}}" mode="selector" range="{{yearOptions}}" value="{{yearIndex}}" bindchange="onYearPick">
-          <view class="pill">{{year}}</view>
+        <!-- 右侧轻按钮：按年统计 / 按月统计（切换） -->
+        <button class="btn-ghost" bindtap="onToggleYearMode">
+          {{ mode === 'year' ? '按月统计' : '按年统计' }}
+        </button>
+
+        <!-- 隐藏的年份选择器：仅在进入 year 模式时弹一次 -->
+        <picker wx:if="{{showYearPicker}}" mode="selector" range="{{yearOptions}}" value="{{yearIndex}}" bindchange="onYearPicked" bindcancel="onYearPickCancel">
+          <view style="display:none;"></view>
         </picker>
       </view>
     </view>
