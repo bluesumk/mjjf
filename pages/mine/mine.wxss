@@ -441,3 +441,56 @@
   font-size: 24rpx;
   color: var(--text-light);
 }
+
+/* Profile Card Styles */
+.profile-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx;
+  margin: 24rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #F1FFF6 0%, #E6F7FF 100%);
+  box-shadow: 0 6rpx 16rpx rgba(0,0,0,.06);
+}
+
+.profile-left {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.profile-card .avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: #f2f3f5;
+}
+
+.meta .nickname {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+}
+
+.meta .subtitle {
+  font-size: 24rpx;
+  color: #9aa1a9;
+  margin-top: 4rpx;
+  display: block;
+}
+
+.btn-outline {
+  padding: 16rpx 28rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(0,0,0,.15);
+  background: #fff;
+  color: #333;
+  line-height: 1;
+  font-size: 26rpx;
+}
+
+.btn-outline:active {
+  opacity: .9;
+}

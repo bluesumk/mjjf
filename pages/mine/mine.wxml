@@ -1,37 +1,15 @@
 <!-- 我的页面 -->
 <view class="container mine-container fade-in">
-  <!-- 用户信息卡片 -->
-  <view class="user-card card">
-    <view class="user-header">
-      <view class="user-avatar-section">
-        <view class="user-avatar">
-          <text class="avatar-initial">{{nickname.charAt(0)}}</text>
-        </view>
-        <view class="user-badge">
-          <text class="badge-text">🏆</text>
-        </view>
-      </view>
-      <view class="user-details">
-        <text class="user-name title-large">{{nickname}}</text>
-        <text class="user-title text-secondary">麻将计分达人</text>
+  <!-- Profile Card -->
+  <view class="profile-card">
+    <view class="profile-left">
+      <image class="avatar" src="{{avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill" />
+      <view class="meta">
+        <text class="nickname">{{nickName || '微信用户'}}</text>
+        <text class="subtitle">麻将计分达人</text>
       </view>
     </view>
-    <view class="user-actions">
-      <view class="profile-edit-section">
-        <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" style="position: relative; left: -214rpx; top: -114rpx; width: 164rpx; display: flex; box-sizing: content-box; height: 45rpx">
-          <text class="btn-icon">📷</text>
-          <text class="btn-text">更换头像</text>
-        </button>
-        <input style="width: 160rpx; display: block; box-sizing: border-box; height: 41rpx" 
-          class="nickname-input" 
-          type="nickname" 
-          placeholder="点击输入昵称" 
-          value="{{nickname}}" 
-          bindinput="onNicknameInput"
-          bindblur="onNicknameBlur"
-        />
-      </view>
-    </view>
+    <button class="btn-outline" bindtap="gotoEditProfile">修改资料</button>
   </view>
 
   <!-- 时间筛选器 -->

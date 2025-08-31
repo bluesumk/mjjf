@@ -1,0 +1,22 @@
+<!--pages/invite/join/index.wxml-->
+<view class="container">
+  <view wx:if="{{error}}" class="error-info">
+    <view class="error-icon">❌</view>
+    <text class="error-title">无法加入牌局</text>
+    <text class="error-msg">{{error}}</text>
+    <button class="btn-home" bindtap="goHome">返回首页</button>
+  </view>
+  
+  <view wx:elif="{{canJoin}}" class="join-info">
+    <view class="success-icon">✅</view>
+    <text class="title">找到牌局！</text>
+    <text class="session-id">会话ID: {{sid}}</text>
+    <text class="token">邀请码: {{token}}</text>
+    <button class="btn-join" bindtap="joinSession">加入牌局</button>
+  </view>
+  
+  <view wx:else class="loading-info">
+    <text class="title">正在验证...</text>
+    <text class="loading-text">请稍候</text>
+  </view>
+</view>

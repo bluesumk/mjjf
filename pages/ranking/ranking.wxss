@@ -2,266 +2,160 @@
 
 .ranking-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background-color: #f5f5f5;
   padding: 20rpx;
 }
 
-/* ========== 标题区域 ========== */
+/* 标题区域 */
 .ranking-header {
+  background-color: #fff;
+  padding: 32rpx 24rpx;
+  margin-bottom: 16rpx;
+  border-radius: 12rpx;
   text-align: center;
-  padding: 40rpx 20rpx;
-  background: linear-gradient(135deg, var(--primary-color), #20B2AA);
-  border-radius: 20rpx;
-  margin-bottom: 30rpx;
-  color: white;
-  box-shadow: var(--shadow-medium);
 }
 
 .ranking-title {
-  font-size: 40rpx;
-  font-weight: 700;
-  display: block;
-  margin-bottom: 20rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
 }
 
-.session-info {
+/* 表格布局 */
+.table-header,
+.ranking-row {
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 12rpx;
-  font-size: 22rpx;
-  opacity: 0.9;
-  background-color: rgba(255, 255, 255, 0.2);
-  padding: 8rpx 12rpx;
-  border-radius: 12rpx;
-  margin: 0 auto;
-  width: 280rpx;
+  background-color: #fff;
+  border-radius: 8rpx;
+  margin-bottom: 8rpx;
 }
 
-.original-info {
-  min-width: 70rpx;
-  text-align: center;
-  font-weight: 600;
+.table-header {
+  padding: 16rpx 24rpx;
+  background-color: #f8f9fa;
+  border: 1rpx solid #e9ecef;
 }
 
-.multiplier-info {
-  min-width: 50rpx;
-  text-align: center;
-  font-weight: 600;
-}
-
-.final-info {
-  min-width: 90rpx;
-  text-align: center;
-  font-weight: 600;
-}
-
-/* ========== 排行榜列表 ========== */
-.ranking-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-  margin-bottom: 40rpx;
-}
-
-.ranking-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.ranking-row {
   padding: 20rpx 24rpx;
-  background-color: var(--background-primary);
-  border-radius: 16rpx;
-  box-shadow: var(--shadow-light);
-  border-left: 6rpx solid var(--border-color);
-  transition: all 0.3s ease;
-  min-height: 120rpx;
+  border: 1rpx solid #e9ecef;
 }
 
-.ranking-item.top-rank {
-  background: linear-gradient(135deg, #FFF9C4, #FFECB3);
-  border-left-color: #FFD54F;
-  box-shadow: var(--shadow-medium);
+.ranking-row:hover {
+  background-color: #f8f9fa;
 }
 
-.ranking-item:active {
-  transform: scale(0.98);
+/* 列宽定义 */
+.rank-cell {
+  width: 80rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* ========== 玩家信息 ========== */
-.player-info {
+.player-cell {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 16rpx;
-  flex: 1;
-  max-width: 60%;
+  min-width: 120rpx;
 }
 
-.rank-badge {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 50%;
+.score-cell,
+.multiplier-cell,
+.final-cell {
+  width: 120rpx;
   display: flex;
-  align-items: center;
   justify-content: center;
-  background-color: var(--text-light);
-  font-weight: 700;
+  align-items: center;
 }
 
-.rank-badge.first {
-  background: linear-gradient(135deg, #FFD700, #FFA500);
-}
-
-.rank-badge.second {
-  background: linear-gradient(135deg, #C0C0C0, #A9A9A9);
-}
-
-.rank-badge.third {
-  background: linear-gradient(135deg, #CD7F32, #B8860B);
-}
-
-.rank-icon {
-  font-size: 28rpx;
-}
-
-.rank-number {
+/* 表头样式 */
+.header-cell {
   font-size: 24rpx;
-  color: var(--text-primary);
+  font-weight: 600;
+  color: #666;
+  text-align: center;
 }
 
+/* 排名 */
+.rank-number {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 玩家信息 */
 .player-avatar {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 10rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3rpx solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-}
-
-.player-avatar.tai-avatar {
-  background: linear-gradient(135deg, #4A90E2, #357ABD) !important;
-  color: white;
+  flex-shrink: 0;
 }
 
 .avatar-text {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.tai-avatar .avatar-text {
-  color: white;
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: bold;
 }
 
 .player-name {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
 }
 
-/* ========== 分数信息 ========== */
-.score-info {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12rpx;
-  min-width: 280rpx;
-  justify-content: space-between;
-  background-color: rgba(255, 255, 255, 0.3);
-  padding: 8rpx 12rpx;
-  border-radius: 12rpx;
-}
-
-.original-score {
+/* 分数样式 */
+.score-value,
+.final-value {
   font-size: 26rpx;
   font-weight: 600;
-  min-width: 70rpx;
   text-align: center;
-  padding: 4rpx 8rpx;
-  border-radius: 6rpx;
-  background-color: rgba(255, 255, 255, 0.5);
 }
 
+.score-value.positive,
+.final-value.positive {
+  color: #e54d42;
+}
+
+.score-value.negative,
+.final-value.negative {
+  color: #00b050;
+}
+
+/* 倍率 */
 .multiplier-value {
-  font-size: 22rpx;
-  color: var(--primary-color);
-  font-weight: 600;
-  min-width: 50rpx;
+  font-size: 24rpx;
+  color: #666;
+  font-weight: 500;
   text-align: center;
-  padding: 4rpx 6rpx;
-  border-radius: 6rpx;
-  background-color: rgba(46, 139, 87, 0.1);
 }
 
-.final-score {
-  font-size: 30rpx;
-  font-weight: 700;
-  min-width: 90rpx;
-  text-align: center;
-  padding: 4rpx 8rpx;
-  border-radius: 6rpx;
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
-/* 颜色配置：正分红色，负分绿色 */
-.original-score.positive,
-.final-score.positive {
-  color: #E74C3C; /* 红色表示正分 */
-}
-
-.original-score.negative,
-.final-score.negative {
-  color: #27AE60; /* 绿色表示负分 */
-}
-
-/* ========== 分享区域 ========== */
+/* 分享按钮 */
 .share-section {
-  display: flex;
-  justify-content: center;
-  padding: 20rpx;
+  margin-top: 32rpx;
+  padding: 0 24rpx;
 }
 
 .share-btn {
-  background: linear-gradient(135deg, var(--primary-color), #20B2AA);
+  width: 100%;
+  height: 72rpx;
+  background: linear-gradient(135deg, #5a9dff, #4a8cef);
   color: white;
   border: none;
-  border-radius: 25rpx;
-  padding: 20rpx 60rpx;
-  font-size: 28rpx;
+  border-radius: 36rpx;
+  font-size: 26rpx;
   font-weight: 600;
-  box-shadow: var(--shadow-medium);
-  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .share-btn:active {
-  transform: scale(0.95);
-  box-shadow: var(--shadow-light);
+  transform: scale(0.98);
+  box-shadow: 0 3rpx 10rpx rgba(90, 157, 255, 0.3);
 }
-
-.share-text {
-  color: white;
-}
-
-/* ========== 动画效果 ========== */
-.ranking-item {
-  animation: slideInUp 0.6s ease-out;
-}
-
-.ranking-item:nth-child(1) { animation-delay: 0.1s; }
-.ranking-item:nth-child(2) { animation-delay: 0.2s; }
-.ranking-item:nth-child(3) { animation-delay: 0.3s; }
-.ranking-item:nth-child(4) { animation-delay: 0.4s; }
-.ranking-item:nth-child(5) { animation-delay: 0.5s; }
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-

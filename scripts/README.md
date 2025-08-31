@@ -121,3 +121,4 @@ node scripts/compress.js --restore
 ## 更新记录
 
 - **v1.0.0**: 初始版本，支持 JS 代码压缩和组件按需注入
+

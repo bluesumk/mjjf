@@ -95,6 +95,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 1rpx;
 }
 
 .player-avatar {
@@ -105,7 +106,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 4rpx;
 }
 
 .avatar-text {
@@ -114,10 +114,21 @@
   font-weight: bold;
 }
 
-.player-score {
-  font-size: 26rpx;
+.player-name {
+  font-size: 20rpx;
   color: #333;
-  font-weight: bold;
+  max-width: 70rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  margin-bottom: -1rpx;
+}
+
+.player-score {
+  font-size: 24rpx;
+  color: #333;
+  font-weight: normal;
 }
 
 .player-score.positive {
@@ -149,6 +160,12 @@
   top: 12rpx;
   right: 12rpx;
 }
+
+
+
+
+
+
 
 /* 空状态 */
 .no-record {

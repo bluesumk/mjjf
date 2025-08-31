@@ -1,46 +1,50 @@
 {
-  "pages": [
-    "pages/index/index",
-    "pages/invite/invite",
-    "pages/scoring/scoring",
-    "pages/records/records",
-    "pages/mine/mine",
-    "pages/session-detail/session-detail",
-    "pages/ranking/ranking"
-  ],
-  "lazyCodeLoading": "requiredComponents",
-  "window": {
-    "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#ffffff",
-    "navigationBarTitleText": "麻将记分",
-    "navigationBarTextStyle": "black"
-  },
-  "tabBar": {
-    "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "assets/home.png",
-        "selectedIconPath": "assets/home.png"
-      },
-      {
-        "pagePath": "pages/records/records",
-        "text": "记录",
-        "iconPath": "assets/records.png",
-        "selectedIconPath": "assets/records.png"
-      },
-      {
-        "pagePath": "pages/mine/mine",
-        "text": "我的",
-        "iconPath": "assets/mine.png",
-        "selectedIconPath": "assets/mine.png"
-      }
+    "pages": [
+        "pages/index/index",
+        "pages/invite/invite",
+        "pages/invite/join/index",
+        "pages/scoring/scoring",
+        "pages/records/records",
+        "pages/rounds-detail/index",
+        "pages/mine/mine",
+        "pages/profile/edit/index",
+        "pages/session-detail/session-detail",
+        "pages/ranking/ranking"
     ],
-    "color": "#7F8C8D",
-    "selectedColor": "#2E8B57",
-    "backgroundColor": "#ffffff",
-    "borderStyle": "white"
-  },
-  "style": "v2",
-  "sitemapLocation": "sitemap.json"
+    "cloud": true,
+    "lazyCodeLoading": "requiredComponents",
+    "window": {
+        "backgroundTextStyle": "light",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTitleText": "麻将记分",
+        "navigationBarTextStyle": "black"
+    },
+    "tabBar": {
+        "list": [
+            {
+                "pagePath": "pages/index/index",
+                "text": "首页",
+                "iconPath": "assets/home.png",
+                "selectedIconPath": "assets/home.png"
+            },
+            {
+                "pagePath": "pages/records/records",
+                "text": "记录",
+                "iconPath": "assets/records.png",
+                "selectedIconPath": "assets/records.png"
+            },
+            {
+                "pagePath": "pages/mine/mine",
+                "text": "我的",
+                "iconPath": "assets/mine.png",
+                "selectedIconPath": "assets/mine.png"
+            }
+        ],
+        "color": "#7F8C8D",
+        "selectedColor": "#2E8B57",
+        "backgroundColor": "#ffffff",
+        "borderStyle": "white"
+    },
+    "style": "v2",
+    "sitemapLocation": "sitemap.json"
 }

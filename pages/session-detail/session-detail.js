@@ -102,7 +102,7 @@ Page({
         name,
         value: round.scores[name] || 0
       }));
-
+      
       return {
         timestamp: round.timestamp,
         displayTime,
@@ -148,5 +148,7 @@ Page({
     wx.navigateTo({
       url: `/pages/ranking/ranking?sessionId=${sessionId}`
     });
-  }
+  },
+
+
 });

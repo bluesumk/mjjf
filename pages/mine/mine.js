@@ -16,6 +16,9 @@ Page({
     ,
     // 用户昵称
     nickname: '',
+    // 用户头像和昵称（新增）
+    avatarUrl: '',
+    nickName: '',
     // 功能网格数据
     gridItems: [
       { label: '我的会员', icon: '/assets/membership.png' },
@@ -52,6 +55,13 @@ Page({
    * 页面显示时刷新数据
    */
   onShow() {
+    // 回显：从全局或本地取资料
+    const app = getApp();
+    const prof = wx.getStorageSync('userProfile') || app.globalData?.userProfile || {};
+    this.setData({ 
+      avatarUrl: prof.avatarUrl, 
+      nickName: prof.nickName || prof.nickname || this.data.nickname 
+    });
     this.refreshData();
   },
   
@@ -59,15 +69,61 @@ Page({
    * 初始化用户信息
    */
   initUserInfo() {
-    // 尝试从本地存储获取用户昵称
-    const userInfo = wx.getStorageSync('userInfo');
-    if (userInfo && userInfo.nickname) {
-      this.setData({ nickname: userInfo.nickname });
-    } else {
-      // 如果没有存储的用户信息，使用默认昵称
-      this.setData({ nickname: '弓长' });
-    }
+    // 从认证管理器获取用户信息
+    const authManager = app.globalData.authManager;
+    const nickname = authManager.getNickname();
+    
+    this.setData({ nickname: nickname });
   },
+  /**
+   * 选择头像
+   */
+  onChooseAvatar(e) {
+    const { avatarUrl } = e.detail;
+    console.log('选择头像:', avatarUrl);
+    
+    // 更新用户信息
+    const authManager = app.globalData.authManager;
+    const userInfo = authManager.getUserInfo() || {};
+    userInfo.avatarUrl = avatarUrl;
+    
+    authManager.saveUserInfoPublic(userInfo);
+    wx.showToast({ title: '头像更新成功', icon: 'success' });
+    
+    // 刷新页面显示
+    this.initUserInfo();
+  },
+
+  /**
+   * 昵称输入
+   */
+  onNicknameInput(e) {
+    // 实时更新显示，但不保存
+    this.setData({ nickname: e.detail.value });
+  },
+
+  /**
+   * 昵称输入完成
+   */
+  onNicknameBlur(e) {
+    const newNickname = e.detail.value.trim();
+    if (!newNickname) {
+      wx.showToast({ title: '昵称不能为空', icon: 'none' });
+      this.initUserInfo(); // 恢复原昵称
+      return;
+    }
+
+    // 保存新昵称
+    const authManager = app.globalData.authManager;
+    const userInfo = authManager.getUserInfo() || {};
+    userInfo.nickName = newNickname;
+    
+    authManager.saveUserInfoPublic(userInfo);
+    wx.showToast({ title: '昵称更新成功', icon: 'success' });
+    
+    console.log('昵称已更新为:', newNickname);
+  },
+
   /**
    * 刷新年份列表并重算统计数据
    */
@@ -272,5 +328,13 @@ Page({
       title: item.label,
       icon: 'none'
     });
+  },
+
+  /**
+   * 进入编辑资料页面
+   */
+  gotoEditProfile() {
+    const target = '/pages/profile/edit/index';
+    wx.navigateTo({ url: target });
   }
 });

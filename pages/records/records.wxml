@@ -29,7 +29,7 @@
       <view class="session-item" data-id="{{item.id}}" data-status="{{item.status}}" bindtap="onSessionTap">
         <!-- 删除按钮 -->
         <image class="trash-icon" src="/assets/trash.png" 
-               data-id="{{item.id}}" bindtap="deleteSession" catchtap="true"></image>
+               data-id="{{item.id}}" catchtap="deleteSession"></image>
         
         <!-- 玩家头像和分数 -->
         <view class="players-row">
@@ -38,12 +38,15 @@
               <view class="player-avatar" style="background-color: {{player.avatarColor}}">
                 <text class="avatar-text">{{player.name === '台' ? '台' : player.name.charAt(0)}}</text>
               </view>
+              <text class="player-name">{{player.name}}</text>
               <text class="player-score {{player.score >= 0 ? 'positive' : 'negative'}}">
                 {{player.score}}
               </text>
             </view>
           </block>
         </view>
+        
+
         
         <!-- 日期时间 -->
         <text class="session-date">{{item.displayDate}}</text>

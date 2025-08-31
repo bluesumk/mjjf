@@ -1,0 +1,13 @@
+<view class="edit-wrap">
+  <view class="avatar-box">
+    <image class="avatar-lg" src="{{avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill"/>
+    <button class="btn-outline" bindtap="changeAvatar">更换头像</button>
+  </view>
+
+  <view class="field">
+    <text class="label">昵称</text>
+    <input class="input" value="{{nickName}}" placeholder="请输入昵称" bindinput="onNameInput" />
+  </view>
+
+  <button class="btn-primary" bindtap="onSave">保存</button>
+</view>

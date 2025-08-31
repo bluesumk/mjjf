@@ -47,8 +47,8 @@
       </view>
     </view>
     
-    <!-- 邀请码 -->
-    <view class="invite-code-section">
+    <!-- QA-FIX: B3 邀请码模块隐藏 -->
+    <view wx:if="{{false}}" class="invite-code-section">
       <text class="code-label">邀请码：</text>
       <text class="invite-code">{{inviteCode || '生成中...'}}</text>
       <button size="mini" class="copy-btn" bindtap="copyInviteCode" disabled="{{!inviteCode}}">复制</button>

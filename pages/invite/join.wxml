@@ -1,0 +1,84 @@
+<!-- 扫码加入牌局页面 -->
+<view class="container join-container">
+  
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading-section">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">正在加载牌局信息...</text>
+  </view>
+
+  <!-- 错误提示 -->
+  <view wx:elif="{{error}}" class="error-section">
+    <view class="error-icon">❌</view>
+    <text class="error-title">无法加入牌局</text>
+    <text class="error-message">{{error}}</text>
+    <view class="error-actions">
+      <button type="default" size="default" bindtap="reload">重新尝试</button>
+      <button type="primary" size="default" bindtap="goHome">返回首页</button>
+    </view>
+  </view>
+
+  <!-- 成功加载牌局信息 -->
+  <view wx:else class="session-info-section">
+    
+    <!-- 牌局标题 -->
+    <view class="session-header">
+      <view class="session-icon">🀄️</view>
+      <text class="session-title">邀请您加入麻将计分</text>
+    </view>
+
+    <!-- 牌局信息 -->
+    <view class="session-details">
+      <view class="detail-item">
+        <text class="detail-label">台板设置：</text>
+        <text class="detail-value">{{session.taiSwitch ? '已开启' : '已关闭'}}</text>
+      </view>
+      
+      <view class="detail-item">
+        <text class="detail-label">创建时间：</text>
+        <text class="detail-value">{{session.createdAt}}</text>
+      </view>
+      
+      <view class="detail-item">
+        <text class="detail-label">牌局状态：</text>
+        <text class="detail-value status-{{session.status}}">
+          {{session.status === 'ongoing' ? '进行中' : '等待开始'}}
+        </text>
+      </view>
+    </view>
+
+    <!-- 参与者列表 -->
+    <view class="participants-section">
+      <text class="participants-title">当前参与者 ({{session.participants.length}}人)</text>
+      <view class="participants-list">
+        <view wx:for="{{session.participants}}" wx:key="index" class="participant-item">
+          <view class="participant-avatar">
+            <text class="avatar-text">{{item.charAt(0)}}</text>
+          </view>
+          <text class="participant-name">{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加入按钮 -->
+    <view class="join-actions">
+      <button 
+        type="primary" 
+        size="default" 
+        class="join-btn"
+        bindtap="joinSession" 
+        loading="{{joining}}"
+        disabled="{{joining}}"
+      >
+        {{joining ? '加入中...' : '加入牌局'}}
+      </button>
+      
+      <button type="default" size="default" class="cancel-btn" bindtap="goHome">
+        取消
+      </button>
+    </view>
+
+  </view>
+
+</view>
+

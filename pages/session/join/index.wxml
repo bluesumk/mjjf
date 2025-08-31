@@ -1,0 +1,76 @@
+<!-- pages/session/join/index.wxml -->
+<view class="container join-container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-state">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">正在加载牌局信息...</text>
+  </view>
+
+  <!-- 错误状态 -->
+  <view wx:elif="{{error}}" class="error-state">
+    <view class="error-icon">❌</view>
+    <text class="error-title">无法加入牌局</text>
+    <text class="error-message">{{error}}</text>
+    <view class="error-actions">
+      <button type="default" class="retry-btn" bindtap="refresh">重试</button>
+      <button type="primary" class="home-btn" bindtap="goHome">回到首页</button>
+    </view>
+  </view>
+
+  <!-- 成功状态 -->
+  <view wx:else class="success-state">
+    <view class="session-info card">
+      <view class="session-header">
+        <text class="session-title">🎮 牌局邀请</text>
+        <text class="session-status {{session.status === 'ongoing' ? 'ongoing' : 'pending'}}">
+          {{session.status === 'ongoing' ? '进行中' : '等待开始'}}
+        </text>
+      </view>
+      
+      <view class="session-details">
+        <view class="detail-item">
+          <text class="detail-label">参与者：</text>
+          <text class="detail-value">{{session.participants.length}}人</text>
+        </view>
+        
+        <view class="detail-item">
+          <text class="detail-label">创建时间：</text>
+          <text class="detail-value">{{session.createdAt}}</text>
+        </view>
+        
+        <view wx:if="{{session.taiSwitch}}" class="detail-item">
+          <text class="detail-label">台板：</text>
+          <text class="detail-value enabled">已启用</text>
+        </view>
+      </view>
+      
+      <!-- 参与者列表 -->
+      <view class="participants-section">
+        <text class="section-title">参与者列表</text>
+        <view class="participants-list">
+          <view wx:for="{{session.participants}}" wx:key="index" class="participant-item">
+            <view class="participant-avatar">
+              <text class="avatar-text">{{item.charAt(0)}}</text>
+            </view>
+            <text class="participant-name">{{item}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="join-actions">
+      <button type="primary" 
+              class="join-btn" 
+              bindtap="joinSession" 
+              disabled="{{joining}}"
+              loading="{{joining}}">
+        {{joining ? '加入中...' : '加入牌局'}}
+      </button>
+      
+      <button type="default" class="cancel-btn" bindtap="goHome">
+        取消
+      </button>
+    </view>
+  </view>
+</view>

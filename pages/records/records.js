@@ -30,6 +30,7 @@ Page({
    */
   refreshData() {
     const sessions = app.globalData.sessions;
+    
     const yearsSet = new Set();
     const monthsSet = new Set();
     
@@ -38,19 +39,19 @@ Page({
       const year = date.getFullYear();
       const month = date.getMonth() + 1;
       const monthStr = `${String(month).padStart(2, '0')}月`;
-      yearsSet.add(year);
-      monthsSet.add(month);
+      yearsSet.add(year.toString());
+      monthsSet.add(monthStr);
     });
     
-    const sortedYears = Array.from(yearsSet).sort((a, b) => b - a);
-    const yearList = ['全部'].concat(sortedYears.map(year => `${year}年`));
+    const sortedYears = Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
+    const yearList = ['全部', ...sortedYears];
     
-    const sortedMonths = Array.from(monthsSet).sort((a, b) => a - b);
-    const monthList = ['全部'].concat(sortedMonths.map(month => `${String(month).padStart(2, '0')}月`));
+    const sortedMonths = Array.from(monthsSet).sort((a, b) => b.localeCompare(a));
+    const monthList = ['全部', ...sortedMonths];
     
     // 默认选中最新的年份和月份
     const selectedYear = yearList.length > 1 ? yearList[1] : '全部';
-    const selectedMonth = monthList.length > 1 ? monthList[monthList.length - 1] : '全部';
+    const selectedMonth = monthList.length > 1 ? monthList[1] : '全部';
     
     // 设置时间选择器数据
     const timePickerRange = [yearList, monthList];
@@ -73,21 +74,18 @@ Page({
    * 根据当前 tab 和月份筛选对局
    */
   filterSessions() {
-    const activeTab = this.data.activeTab;
-    const selectedYear = this.data.selectedYear;
-    const selectedMonth = this.data.selectedMonth;
+    const { activeTab, selectedYear, selectedMonth } = this.data;
     const filtered = app.globalData.sessions.filter(s => {
       if (activeTab === 'ongoing' && s.status !== 'ongoing') return false;
       if (activeTab === 'finished' && s.status !== 'finished') return false;
       
       const date = new Date(s.createdAt);
-      const year = date.getFullYear();
+      const year = date.getFullYear().toString();
       const month = date.getMonth() + 1;
-      const yearStr = `${year}年`;
       const monthStr = `${String(month).padStart(2, '0')}月`;
       
       if (selectedYear && selectedYear !== '全部') {
-        if (yearStr !== selectedYear) return false;
+        if (year !== selectedYear) return false;
       }
       if (selectedMonth && selectedMonth !== '全部') {
         if (monthStr !== selectedMonth) return false;
@@ -104,10 +102,10 @@ Page({
         .padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes()
         .toString()
         .padStart(2, '0')}`;
-      // 构建最终分列表以及颜色类
+      // 构建原始分数列表（已结束的对局显示原始累计分数）
       let finalList = [];
       if (s.status === 'finished') {
-        // 计算原始累计分数（不乘倍率）
+        // 计算原始累计分数
         const names = s.participants.slice();
         if (s.taiSwitch) {
           names.push('台');
@@ -120,13 +118,15 @@ Page({
         });
         
         // 累加每一局的分数
-        s.rounds.forEach(round => {
-          Object.keys(round.scores).forEach(name => {
-            if (originalScores.hasOwnProperty(name)) {
-              originalScores[name] += round.scores[name] || 0;
-            }
+        if (s.rounds && s.rounds.length > 0) {
+          s.rounds.forEach(round => {
+            Object.keys(round.scores).forEach(name => {
+              if (originalScores.hasOwnProperty(name)) {
+                originalScores[name] += round.scores[name] || 0;
+              }
+            });
           });
-        });
+        }
         
         finalList = names.map(name => {
           const score = originalScores[name] || 0;
@@ -215,46 +215,56 @@ Page({
     });
     this.filterSessions();
   },
+
+  /**
+   * 月份选择器变化
+   */
+  onMonthChange(e) {
+    const selectedMonth = this.data.monthList[e.detail.value];
+    this.setData({ selectedMonth });
+    this.filterSessions();
+  }
+  ,
   /**
    * 删除指定的对局
    */
   deleteSession(e) {
     const id = Number(e.currentTarget.dataset.id);
-    const sessions = app.globalData.sessions;
-    const idx = sessions.findIndex(s => s.id === id);
-    if (idx !== -1) {
-      sessions.splice(idx, 1);
-      // 更新存储
-      app.saveSessions();
-      this.filterSessions();
-    }
-  },
-
-  /**
-   * 查看对局详情
-   */
-  viewDetail(e) {
-    const id = Number(e.currentTarget.dataset.id);
-    if (!id) return;
     
-    const sessions = app.globalData.sessions;
-    const session = sessions.find(s => s.id === id);
-    
-    if (!session) {
-      wx.showToast({ title: '对局不存在', icon: 'error' });
-      return;
-    }
-    
-    if (session.status !== 'finished') {
-      wx.showToast({ title: '只能查看已结束的对局', icon: 'none' });
-      return;
-    }
-    
-    // 跳转到对局详情页面
-    wx.navigateTo({
-      url: `/pages/session-detail/session-detail?sessionId=${id}`
+    // 确认删除
+    wx.showModal({
+      title: '确认删除',
+      content: '确定要删除这个对局记录吗？删除后不可恢复。',
+      confirmText: '删除',
+      confirmColor: '#e54d42',
+      success: (res) => {
+        if (res.confirm) {
+          const sessions = app.globalData.sessions;
+          const idx = sessions.findIndex(s => s.id === id);
+          if (idx !== -1) {
+            sessions.splice(idx, 1);
+            // 更新存储
+            app.saveSessions();
+            // 刷新页面数据
+            this.refreshData();
+            wx.showToast({
+              title: '删除成功',
+              icon: 'success',
+              duration: 1500
+            });
+          } else {
+            wx.showToast({
+              title: '删除失败',
+              icon: 'error',
+              duration: 1500
+            });
+          }
+        }
+      }
     });
   },
+
+
 
   /**
    * 获取玩家头像颜色
@@ -296,9 +306,9 @@ Page({
       app.globalData.currentSessionId = id;
       wx.navigateTo({ url: '/pages/scoring/scoring' });
     } else {
-      // 已结束的对局，跳转至对局详情页面
+      // 已结束的对局，跳转至牌局明细页面查看每局详情
       wx.navigateTo({
-        url: `/pages/session-detail/session-detail?sessionId=${id}`
+        url: `/pages/rounds-detail/index?sessionId=${id}`
       });
     }
   }

@@ -1,0 +1,52 @@
+/* pages/invite/join/index.wxss */
+.container {
+  padding: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  justify-content: center;
+}
+
+.error-info, .join-info, .loading-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30rpx;
+  text-align: center;
+}
+
+.error-icon, .success-icon {
+  font-size: 80rpx;
+}
+
+.title, .error-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.error-msg {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.session-id, .token, .loading-text {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.btn-home, .btn-join {
+  margin-top: 20rpx;
+  width: 200rpx;
+}
+
+.btn-home {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.btn-join {
+  background-color: #2E8B57;
+  color: white;
+}

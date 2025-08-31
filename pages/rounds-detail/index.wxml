@@ -1,0 +1,82 @@
+<!-- 牌局明细表页面 -->
+<view class="rounds-detail-container">
+
+
+  <!-- 参与者信息 -->
+  <view class="participants-section">
+    <view class="participants-header">
+      <text class="participants-title">参与者</text>
+      <view wx:if="{{hasTai}}" class="tai-switch-display">
+        <text class="tai-label">台板</text>
+        <view class="switch-indicator active">
+          <view class="switch-dot"></view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 参与者头像行 -->
+    <view class="participants-avatars">
+      <block wx:for="{{participants}}" wx:key="name">
+        <view class="participant-column">
+          <view class="participant-avatar" style="background-color: {{item.avatarColor}}">
+            <text class="avatar-text">{{item.name === '台' ? '台' : item.name.charAt(0)}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+    
+    <!-- 参与者昵称行 -->
+    <view class="participants-names">
+      <block wx:for="{{participants}}" wx:key="name">
+        <view class="participant-column">
+          <text class="participant-name">{{item.name}}</text>
+        </view>
+      </block>
+    </view>
+    
+    <!-- 累计总分行 -->
+    <view class="participants-totals">
+      <block wx:for="{{participants}}" wx:key="name">
+        <view class="participant-column">
+          <text class="total-score {{item.totalScore >= 0 ? 'positive' : 'negative'}}">{{item.totalScore}}</text>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 每局明细列表 -->
+  <view class="rounds-list">
+    <view class="list-header">
+      <text class="header-title">每局明细</text>
+    </view>
+    
+    <block wx:for="{{roundsList}}" wx:key="index">
+      <view class="round-item">
+        <view class="round-info">
+          <text class="round-text">第{{item.roundNo}}局</text>
+          <text class="round-time">{{item.time}}</text>
+        </view>
+        
+        <view class="scores-row">
+          <block wx:for="{{item.allScores}}" wx:key="*this" wx:for-index="scoreIndex">
+            <view class="score-column">
+              <text class="score-value {{item >= 0 ? 'positive' : 'negative'}}">{{item}}</text>
+            </view>
+          </block>
+        </view>
+      </view>
+    </block>
+    
+    <!-- 空状态 -->
+    <view wx:if="{{roundsList.length === 0}}" class="empty-state">
+      <text class="empty-text">暂无局次记录</text>
+    </view>
+  </view>
+
+  <!-- 底部操作 -->
+  <view class="bottom-actions">
+    <button class="ranking-btn" bindtap="viewRanking">
+      查看牌局详情
+    </button>
+  </view>
+</view>
