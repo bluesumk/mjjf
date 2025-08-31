@@ -1,7 +1,7 @@
 <!-- 我的页面 -->
 <view class="container mine-container fade-in">
   <!-- Profile Card -->
-  <view class="profile-card">
+  <view class="profile-card" style="width: 708rpx; display: flex; box-sizing: border-box; position: relative; left: -24rpx; top: -43rpx">
     <view class="profile-left">
       <image class="avatar" src="{{avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill" />
       <view class="meta">
@@ -9,7 +9,7 @@
         <text class="subtitle">麻将计分达人</text>
       </view>
     </view>
-    <button class="btn-outline" bindtap="gotoEditProfile">修改资料</button>
+    <button class="btn-outline" bindtap="gotoEditProfile" style="width: 199rpx; display: block; box-sizing: border-box; left: 115rpx; top: -5rpx; position: relative">修改资料</button>
   </view>
 
   <!-- 时间筛选器 -->
