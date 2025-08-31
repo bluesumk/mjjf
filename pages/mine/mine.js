@@ -32,6 +32,7 @@ Page({
     // 用户头像和昵称（新增）
     avatarUrl: '',
     nickName: '',
+    __profileReady: false,  // 用于首屏判断（不影响 UI）
     // 功能网格数据
     gridItems: [
       { label: '我的会员', icon: '/assets/membership.png' },
@@ -110,14 +111,16 @@ Page({
                       (wx.getStorageSync('userProfile')||{}).nickName || 
                       app.globalData?.userProfile?.nickName || '';
       
-      this.setData({ avatarUrl, nickName });
+      this.setData({ avatarUrl, nickName, __profileReady: true });
+      wx.setStorageSync('userProfile', { avatarUrl, nickName });
     } catch (e) {
       console.warn('[MINE] 云端数据获取失败，使用本地数据:', e);
       // 回落到本地数据
-      const prof = wx.getStorageSync('userProfile') || app.globalData?.userProfile || {};
+      const cache = wx.getStorageSync('userProfile') || {};
       this.setData({ 
-        avatarUrl: prof.avatarUrl || '', 
-        nickName: prof.nickName || prof.nickname || this.data.nickname || ''
+        avatarUrl: cache.avatarUrl || '', 
+        nickName: cache.nickName || cache.nickname || this.data.nickname || '',
+        __profileReady: true
       });
     }
     this.refreshData();
@@ -413,6 +416,50 @@ Page({
       title: item.label,
       icon: 'none'
     });
+  },
+
+  /**
+   * 一键同步微信资料
+   */
+  async syncWeChatProfile() {
+    if (!wx.getUserProfile) {
+      wx.showToast({ title: '微信版本过低，无法获取资料', icon: 'none' }); 
+      return;
+    }
+    try {
+      const res = await wx.getUserProfile({ desc: '用于完善资料' }); // 必须用户手势触发
+      const nick = res.userInfo?.nickName || '';
+      const avatar = res.userInfo?.avatarUrl || '';
+      
+      // 写入云端（已有 profile 云函数时）
+      try {
+        const up = await wx.cloud.callFunction({
+          name: 'profile',
+          data: { action: 'upsert', nickName: nick, avatarUrl: avatar }
+        });
+        
+        // 回显：avatarFileID 优先
+        let avatarUrl = avatar;
+        const data = up?.result?.data || {};
+        if (data.avatarFileID) {
+          const r = await wx.cloud.getTempFileURL({ fileList: [data.avatarFileID] });
+          avatarUrl = r.fileList?.[0]?.tempFileURL || avatar;
+        }
+        
+        this.setData({ nickName: nick, avatarUrl });
+        wx.setStorageSync('userProfile', { nickName: nick, avatarUrl });
+        wx.showToast({ title: '已同步', icon: 'success' });
+      } catch (e) {
+        // 云函数不可用时，至少先本地回显
+        console.warn('[MINE] 云函数调用失败:', e);
+        this.setData({ nickName: nick, avatarUrl: avatar });
+        wx.setStorageSync('userProfile', { nickName: nick, avatarUrl: avatar });
+        wx.showToast({ title: '资料已本地更新', icon: 'success' });
+      }
+    } catch (e) {
+      console.warn('[MINE] 用户取消授权:', e);
+      wx.showToast({ title: '授权已取消', icon: 'none' });
+    }
   },
 
   /**

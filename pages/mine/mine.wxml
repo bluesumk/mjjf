@@ -1,7 +1,7 @@
 <!-- 我的页面 -->
 <view class="container mine-container fade-in">
   <!-- Profile Card -->
-  <view class="profile-card" style="width: 708rpx; display: flex; box-sizing: border-box; position: relative; left: -24rpx; top: -43rpx">
+  <view class="profile-card" style="width: 708rpx; display: flex; box-sizing: border-box; position: relative; left: -20rpx; top: -28rpx">
     <view class="profile-left">
       <image class="avatar" src="{{avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill" />
       <view class="meta">
@@ -9,7 +9,15 @@
         <text class="subtitle">麻将计分达人</text>
       </view>
     </view>
-    <button class="btn-outline" bindtap="gotoEditProfile" style="width: 199rpx; display: block; box-sizing: border-box; left: 115rpx; top: -5rpx; position: relative">修改资料</button>
+    <!-- 资料卡右侧：如果没有资料显示"同步资料"，有资料显示"修改资料" -->
+    <button wx:if="{{!(nickName) || !(avatarUrl)}}"
+            class="btn-outline"
+            bindtap="syncWeChatProfile"
+            style="width: 199rpx; display: block; box-sizing: border-box; left: 115rpx; top: -5rpx; position: relative">一键同步微信资料</button>
+    <button wx:else
+            class="btn-outline"
+            bindtap="gotoEditProfile"
+            style="width: 199rpx; display: block; box-sizing: border-box; left: 115rpx; top: -5rpx; position: relative">修改资料</button>
   </view>
 
   <!-- 原"数据统计"整块隐藏 -->
@@ -44,7 +52,7 @@
   </view>
 
   <!-- 核心数据 头部 + 时间筛选 -->
-  <view class="overview-card card">
+  <view class="overview-card card" style="position: relative; left: 2rpx; top: -60rpx">
     <view class="section-header">
       <text class="title">核心数据</text>
 
@@ -91,7 +99,7 @@
   </view>
 
   <!-- 详细统计 -->
-  <view class="detailed-stats card">
+  <view class="detailed-stats card" style="position: relative; left: 4rpx; top: -74rpx">
     <view class="stats-header">
       <text class="section-title title-medium">详细统计</text>
       <text class="expand-hint text-light">展开查看更多数据</text>
@@ -168,7 +176,7 @@
   </view>
 
   <!-- 空状态 -->
-  <view class="empty-stats card" wx:else>
+  <view class="empty-stats card" wx:else style="position: relative; left: 5rpx; top: -82rpx">
     <view class="empty-state">
       <text class="empty-icon">📈</text>
       <text class="empty-title">暂无统计数据</text>
