@@ -9,12 +9,11 @@
         <text class="subtitle">麻将计分达人</text>
       </view>
     </view>
-    <!-- 资料卡右侧：如果没有资料显示"同步资料"，有资料显示"修改资料" -->
-    <button wx:if="{{!(nickName) || !(avatarUrl)}}"
+    <button wx:if="{{__profileReady && (!nickName || !avatarUrl)}}"
             class="btn-outline"
             bindtap="syncWeChatProfile"
             style="width: 199rpx; display: block; box-sizing: border-box; left: 115rpx; top: -5rpx; position: relative">一键同步微信资料</button>
-    <button wx:else
+    <button wx:elif="{{__profileReady}}"
             class="btn-outline"
             bindtap="gotoEditProfile"
             style="width: 199rpx; display: block; box-sizing: border-box; left: 115rpx; top: -5rpx; position: relative">修改资料</button>
@@ -68,10 +67,14 @@
         </picker>
 
         <!-- 右侧文本链接：month -> 触发年份选择；year -> 切回按月 -->
-        <picker wx:if="{{mode==='month'}}" mode="selector" range="{{yearOptions}}" value="{{yearIndex}}" bindchange="onYearPicked">
-          <view class="btn-text">按年统计</view>
-        </picker>
-        <text wx:elif="{{mode==='year'}}" class="btn-text" bindtap="backToMonth">按月统计</text>
+        <block wx:if="{{mode==='month'}}">
+          <picker mode="selector" range="{{yearOptions}}" value="{{yearIndex}}" bindchange="onYearPicked">
+            <view class="btn-text">按年统计</view>
+          </picker>
+        </block>
+        <block wx:elif="{{mode==='year'}}">
+          <text class="btn-text" bindtap="backToMonth">按月统计</text>
+        </block>
       </view>
     </view>
     <view class="metrics-grid">
