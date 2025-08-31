@@ -1,13 +1,27 @@
-<view class="edit-wrap">
-  <view class="avatar-box">
-    <image class="avatar-lg" src="{{avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill"/>
-    <button class="btn-outline" bindtap="changeAvatar">更换头像</button>
+<!-- 表单列表 -->
+<view class="form">
+  <!-- 头像行 -->
+  <view class="cell" bindtap="changeAvatar" hover-class="cell-hover">
+    <text class="cell-label">头像</text>
+    <view class="cell-right">
+      <image class="cell-avatar" src="{{avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill" />
+      <text class="cell-arrow">›</text>
+    </view>
   </view>
 
-  <view class="field">
-    <text class="label">昵称</text>
-    <input class="input" value="{{nickName}}" placeholder="请输入昵称" bindinput="onNameInput" />
+  <!-- 昵称行 -->
+  <view class="cell">
+    <text class="cell-label">昵称</text>
+    <input class="cell-input"
+           value="{{nickName}}"
+           placeholder="请输入昵称"
+           maxlength="20"
+           confirm-type="done"
+           bindinput="onNameInput" />
   </view>
+</view>
 
+<!-- 底部固定区 -->
+<view class="footer">
   <button class="btn-primary" bindtap="onSave">保存</button>
 </view>

@@ -14,7 +14,7 @@ Page({
   },
   
   onNameInput(e) { 
-    this.setData({ nickName: e.detail.value }); 
+    this.setData({ nickName: e.detail.value.trim() }); 
   },
   
   async changeAvatar() {
@@ -50,20 +50,29 @@ Page({
   },
   
   onSave() {
-    const { avatarUrl, nickName } = this.data;
-    if (!nickName.trim()) {
-      wx.showToast({ title: '请输入昵称', icon: 'none' });
+    // 最小校验：昵称 1-20
+    const name = (this.data.nickName || '').trim();
+    if (name.length === 0 || name.length > 20) {
+      wx.showToast({ title: '请输入1-20位昵称', icon: 'none' }); 
       return;
     }
     
-    const prof = { avatarUrl, nickName: nickName.trim() };
+    // 本地回写 + 全局回写（保持原有后端/云端保存逻辑不变）
+    const prof = { avatarUrl: this.data.avatarUrl, nickName: name };
     wx.setStorageSync('userProfile', prof);
-    
     const app = getApp(); 
-    app.globalData = app.globalData || {};
+    app.globalData = app.globalData || {}; 
     app.globalData.userProfile = prof;
-    
-    wx.showToast({ title: '已保存', icon: 'success' });
-    setTimeout(() => wx.navigateBack(), 300);
+
+    // 如果项目已有保存到云端的逻辑，继续调用原有方法（留钩子）：
+    if (typeof this.saveProfileToCloud === 'function') {
+      this.saveProfileToCloud(prof).finally(() => {
+        wx.showToast({ title: '已保存', icon: 'success' });
+        setTimeout(() => wx.navigateBack(), 300);
+      });
+    } else {
+      wx.showToast({ title: '已保存', icon: 'success' });
+      setTimeout(() => wx.navigateBack(), 300);
+    }
   }
 });
