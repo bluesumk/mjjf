@@ -66,8 +66,10 @@ Page({
    */
   updateCanShare() {
     const d = this.data || {};
-    const hasPair = !!((d.sid && d.token) || (d.sessionId && d.inviteToken));
-    if (hasPair !== d.canShare) this.setData({ canShare: hasPair });
+    const sid   = d.sid   || d.sessionId;
+    const token = d.token || d.inviteToken;
+    const ok = !!(sid && token);
+    if (ok !== d.canShare) this.setData({ canShare: ok });
   },
 
   /**
@@ -395,6 +397,13 @@ Page({
    */
   onShow() {
     wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
+  },
+
+  /**
+   * 临时验证：分享按钮点击追踪
+   */
+  __tapShareBtn() {
+    console.log('[BTN] tapped', Date.now(), 'canShare=', this.data.canShare);
   }
 });
 

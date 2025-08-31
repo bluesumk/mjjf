@@ -43,7 +43,15 @@
         <button size="mini" class="refresh-btn" bindtap="refreshQRCode" disabled="{{qrGenerating}}">
           {{qrGenerating ? '生成中...' : '刷新'}}
         </button>
-        <button class="share-btn" open-type="share" wx:if="{{canShare}}">分享邀请</button>
+        <!-- 可点：有 sid/token 就显示真正的分享按钮 -->
+        <button wx:if="{{canShare}}"
+                class="share-btn"
+                open-type="share"
+                bindtap="__tapShareBtn">分享邀请</button>
+        
+        <!-- 不可点：仅做占位/灰态展示，避免布局跳动 -->
+        <view wx:else
+              class="share-btn share-btn--disabled">分享邀请</view>
       </view>
     </view>
     
