@@ -69,7 +69,15 @@ Page({
     const sid   = d.sid   || d.sessionId;
     const token = d.token || d.inviteToken;
     const ok = !!(sid && token);
-    if (ok !== d.canShare) this.setData({ canShare: ok });
+    if (ok !== d.canShare) {
+      this.setData({ canShare: ok }, () => {
+        // 当 canShare 变为 true 时，确保分享菜单已开启
+        if (ok && wx && wx.showShareMenu) {
+          console.log('[CREATE] updateCanShare - 重新开启分享菜单');
+          wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
+        }
+      });
+    }
   },
 
   /**
@@ -155,6 +163,9 @@ Page({
           shareReady: true
         }, () => {
           this.updateCanShare();
+          if (this.data.canShare && wx && wx.showShareMenu) {
+            wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
+          }
           console.log('[CREATE] QR成功后 canShare=', this.data.canShare, 'shareReady=', this.data.shareReady, 'sid/token=', this.data.sid || this.data.sessionId, this.data.token || this.data.inviteToken);
         });
         return;
@@ -172,6 +183,9 @@ Page({
       }, () => {
         // 不再禁用分享按钮；仅维持现有降级逻辑
         this.updateCanShare();
+        if (this.data.canShare && wx && wx.showShareMenu) {
+          wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
+        }
         console.log('[CREATE] QR失败后 canShare=', this.data.canShare, 'shareReady=', this.data.shareReady, 'sid/token=', this.data.sid || this.data.sessionId, this.data.token || this.data.inviteToken);
       });
       
@@ -249,12 +263,18 @@ Page({
           // 用临时URL展示，同时保存用于分享
           this.setData({ shareImageUrl: r.url, shareReady: true }, () => {
             this.updateCanShare();
+            if (this.data.canShare && wx && wx.showShareMenu) {
+              wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
+            }
           });
           return { success: true, url: r.url, via: r.via };
         } else if (r.base64) {
           // 或者直接展示 base64
           this.setData({ shareReady: true }, () => {
             this.updateCanShare();
+            if (this.data.canShare && wx && wx.showShareMenu) {
+              wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
+            }
           });
           return { success: true, base64: r.base64, via: r.via };
         } else {
@@ -398,7 +418,19 @@ Page({
    * 页面显示时开启分享
    */
   onShow() {
-    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
+    console.log('[CREATE] onShow - 开启分享菜单');
+    if (wx && wx.showShareMenu) {
+      wx.showShareMenu({ 
+        withShareTicket: true, 
+        menus: ['shareAppMessage'],
+        success: () => {
+          console.log('[CREATE] showShareMenu 成功');
+        },
+        fail: (error) => {
+          console.error('[CREATE] showShareMenu 失败:', error);
+        }
+      });
+    }
   }
 });
 
