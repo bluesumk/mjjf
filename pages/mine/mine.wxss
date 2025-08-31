@@ -494,3 +494,49 @@
 .btn-outline:active {
   opacity: .9;
 }
+
+/* 筛选控件样式 */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 16rpx 24rpx;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2b2f36;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.chip {
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid #e5e6eb;
+  background: #fff;
+  color: #333;
+  font-size: 24rpx;
+}
+
+.chip.active {
+  background: #1677FF;
+  color: #fff;
+  border-color: #1677FF;
+}
+
+.pill {
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid #e5e6eb;
+  background: #fff;
+  color: #333;
+  font-size: 24rpx;
+}

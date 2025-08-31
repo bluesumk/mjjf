@@ -12,39 +12,60 @@
     <button class="btn-outline" bindtap="gotoEditProfile" style="width: 199rpx; display: block; box-sizing: border-box; left: 115rpx; top: -5rpx; position: relative">修改资料</button>
   </view>
 
-  <!-- 时间筛选器 -->
-  <view class="time-filter card">
-    <view class="filter-title">
-      <text class="title-medium">数据统计</text>
-      <text class="filter-subtitle text-secondary">选择查看时间范围</text>
-    </view>
-    <view class="filter-controls">
-      <picker mode="selector" range="{{yearList}}" value="{{yearList.indexOf(selectedYear)}}" bindchange="onYearChange">
-        <view class="time-picker" style="width: 324rpx; display: flex; box-sizing: border-box">
-          <text class="picker-label">年份</text>
-          <view class="picker-value">
-            <text class="value-text">{{selectedYear}}</text>
-            <text class="picker-arrow">▼</text>
+  <!-- 原"数据统计"整块隐藏 -->
+  <view wx:if="{{false}}">
+    <!-- 原先的年份/月选择UI，保留以便回滚 -->
+    <view class="time-filter card">
+      <view class="filter-title">
+        <text class="title-medium">数据统计</text>
+        <text class="filter-subtitle text-secondary">选择查看时间范围</text>
+      </view>
+      <view class="filter-controls">
+        <picker mode="selector" range="{{yearList}}" value="{{yearList.indexOf(selectedYear)}}" bindchange="onYearChange">
+          <view class="time-picker" style="width: 324rpx; display: flex; box-sizing: border-box">
+            <text class="picker-label">年份</text>
+            <view class="picker-value">
+              <text class="value-text">{{selectedYear}}</text>
+              <text class="picker-arrow">▼</text>
+            </view>
           </view>
-        </view>
-      </picker>
-      <picker mode="selector" range="{{monthList}}" value="{{monthList.indexOf(selectedMonth)}}" bindchange="onMonthChange">
-        <view class="time-picker" style="width: 329rpx; display: flex; box-sizing: border-box">
-          <text class="picker-label">月份</text>
-          <view class="picker-value">
-            <text class="value-text">{{selectedMonth}}</text>
-            <text class="picker-arrow">▼</text>
+        </picker>
+        <picker mode="selector" range="{{monthList}}" value="{{monthList.indexOf(selectedMonth)}}" bindchange="onMonthChange">
+          <view class="time-picker" style="width: 329rpx; display: flex; box-sizing: border-box">
+            <text class="picker-label">月份</text>
+            <view class="picker-value">
+              <text class="value-text">{{selectedMonth}}</text>
+              <text class="picker-arrow">▼</text>
+            </view>
           </view>
-        </view>
-      </picker>
+        </picker>
+      </view>
     </view>
   </view>
 
-  <!-- 核心数据概览 -->
+  <!-- 核心数据 头部 + 时间筛选 -->
   <view class="overview-card card">
-    <view class="overview-header">
-      <text class="section-title title-medium">核心数据</text>
-      <text class="period-text text-secondary">{{selectedYear}}年{{selectedMonth === '全部' ? '' : selectedMonth}}</text>
+    <view class="section-header">
+      <text class="title">核心数据</text>
+
+      <view class="filters">
+        <view class="chip {{mode==='month_recent'?'active':''}}" bindtap="setModeRecent">最近自然月</view>
+        <view class="chip {{mode==='month'?'active':''}}" bindtap="setModeMonth">按月</view>
+        <view class="chip {{mode==='year'?'active':''}}" bindtap="setModeYear">按年</view>
+
+        <!-- 月份选择（仅在按月时显示） -->
+        <picker wx:if="{{mode==='month'}}" mode="selector" range="{{yearOptions}}" value="{{yearIndex}}" bindchange="onYearPick">
+          <view class="pill">{{year}}</view>
+        </picker>
+        <picker wx:if="{{mode==='month'}}" mode="selector" range="{{monthOptions}}" value="{{monthIndex}}" bindchange="onMonthPick">
+          <view class="pill">{{month}}</view>
+        </picker>
+
+        <!-- 年份选择（仅在按年时显示） -->
+        <picker wx:if="{{mode==='year'}}" mode="selector" range="{{yearOptions}}" value="{{yearIndex}}" bindchange="onYearPick">
+          <view class="pill">{{year}}</view>
+        </picker>
+      </view>
     </view>
     <view class="metrics-grid">
       <view class="metric-item">

@@ -3,17 +3,22 @@ const app = getApp();
 
 Page({
   data: {
-    // 可选择的年份列表
+    // 新增：三种时间模式
+    mode: 'month_recent',           // 'month_recent' | 'month' | 'year'
+    year: '', month: '',            // 展示文案（如 '2025'、'07'）
+    yearOptions: [], monthOptions: [],
+    yearIndex: 0, monthIndex: 0,
+    
+    // 原有的年份列表（保留兼容）
     yearList: [],
-    // 可选择的月份列表
+    // 原有的月份列表（保留兼容）
     monthList: ['全部'],
-    // 当前选中的年份
+    // 当前选中的年份（保留兼容）
     selectedYear: '全部',
-    // 当前选中的月份
+    // 当前选中的月份（保留兼容）
     selectedMonth: '全部',
     // 统计结果数组 { name, total }
-    stats: []
-    ,
+    stats: [],
     // 用户昵称
     nickname: '',
     // 用户头像和昵称（新增）
@@ -49,6 +54,25 @@ Page({
    */
   onLoad() {
     this.initUserInfo();
+    
+    // 初始化时间选项
+    const now = new Date();
+    const curY = now.getFullYear();
+    const years = Array.from({length:10}, (_,i)=> String(curY - i));
+    const months = Array.from({length:12}, (_,i)=> String(i+1).padStart(2,'0'));
+
+    // 默认最近"自然月"：本月1日 → 今天
+    const curM = String(now.getMonth()+1).padStart(2,'0');
+
+    this.setData({
+      yearOptions: years,
+      monthOptions: months,
+      yearIndex: 0,
+      monthIndex: Number(curM)-1,
+      year: years[0],
+      month: curM,
+      mode: 'month_recent'
+    }, this.updateRangeAndFetch);
   },
   
   /**
@@ -365,5 +389,73 @@ Page({
   gotoEditProfile() {
     const target = '/pages/profile/edit/index';
     wx.navigateTo({ url: target });
+  },
+
+  // —— 模式切换 —— //
+  setModeRecent() { 
+    if (this.data.mode === 'month_recent') return; 
+    this.setData({ mode: 'month_recent' }, this.updateRangeAndFetch); 
+  },
+  setModeMonth() {   
+    if (this.data.mode === 'month') return; 
+    this.setData({ mode: 'month' }, this.updateRangeAndFetch); 
+  },
+  setModeYear() {    
+    if (this.data.mode === 'year') return; 
+    this.setData({ mode: 'year' }, this.updateRangeAndFetch); 
+  },
+
+  // —— 选择器 —— //
+  onYearPick(e) {
+    const idx = Number(e.detail.value || 0);
+    const y = this.data.yearOptions[idx];
+    this.setData({ yearIndex: idx, year: y }, this.updateRangeAndFetch);
+  },
+  onMonthPick(e) {
+    const idx = Number(e.detail.value || 0);
+    const m = this.data.monthOptions[idx];
+    this.setData({ monthIndex: idx, month: m }, this.updateRangeAndFetch);
+  },
+
+  // —— 统一计算时间范围并拉取 —— //
+  updateRangeAndFetch() {
+    const now = new Date();
+    let start, end, groupBy = 'day';
+
+    if (this.data.mode === 'month_recent') {
+      // 本月1日 → 今天（自然月，含起止日）
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      groupBy = 'day';
+    } else if (this.data.mode === 'month') {
+      const y = Number(this.data.year);       // 选中的年
+      const m = Number(this.data.month) - 1;  // 0..11
+      start = new Date(y, m, 1);
+      end   = new Date(y, m+1, 0);            // 当月最后一天
+      groupBy = 'day';
+    } else { // 'year'
+      const y = Number(this.data.year);
+      start = new Date(y, 0, 1);
+      end   = new Date(y, 11, 31);
+      groupBy = 'month';                      // 年度可按月聚合（后端可选）
+    }
+
+    // 归一到 YYYY-MM-DD（含起止日；服务端按闭区间处理）
+    const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const range = { startDate: fmt(start), endDate: fmt(end), groupBy, mode: this.data.mode };
+
+    console.log('[MINE] stats range =', range);
+
+    // —— 统一取数口 —— //
+    if (typeof this.loadStats === 'function') {
+      this.loadStats(range);
+    } else if (typeof this.fetchStats === 'function') {
+      this.fetchStats(range);
+    } else {
+      // TODO: 在此接入后端请求；期望返回聚合后的总场/胜场/胜率/总得分
+      console.log('[MINE] TODO: 接入统计数据API，参数:', range);
+      // 临时使用原有的 computeStats 方法
+      this.computeStats();
+    }
   }
 });
