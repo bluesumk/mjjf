@@ -3,6 +3,11 @@ const app = getApp();
 
 Page({
   data: {
+    // 统一时间范围对象
+    statsRange: { startDate: '', endDate: '', mode: 'month', groupBy: 'day' },
+    loadingCore: false,
+    loadingDetail: false,
+    
     // 新的月/年模式
     mode: 'month',                  // 'month' | 'year'
     monthValue: '',                 // YYYY-MM
@@ -248,9 +253,20 @@ Page({
   /**
    * 计算统计结果
    */
-  computeStats() {
-    const selectedYear = this.data.selectedYear;
-    const selectedMonth = this.data.selectedMonth;
+  computeStats(range) {
+    // 优先使用传入的range，回落到旧的selectedYear/selectedMonth
+    let selectedYear, selectedMonth;
+    if (range && range.startDate && range.endDate) {
+      // 从range解析年月用于兼容旧逻辑
+      const startDate = new Date(range.startDate);
+      const endDate = new Date(range.endDate);
+      selectedYear = startDate.getFullYear().toString();
+      selectedMonth = range.mode === 'year' ? '全部' : 
+                     `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}`;
+    } else {
+      selectedYear = this.data.selectedYear;
+      selectedMonth = this.data.selectedMonth;
+    }
     const sessions = app.globalData.sessions.filter(s => s.status === 'finished');
     const statsMap = {}; // 存储每个玩家的累计分数（倍率后）
     const originalStatsMap = {}; // 存储每个玩家的原始累计分数
@@ -258,10 +274,18 @@ Page({
     // 汇总所有玩家的分数
     sessions.forEach(s => {
       const date = new Date(s.createdAt);
-      const yearStr = date.getFullYear().toString();
-      const monthStr = `${yearStr}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      if (selectedYear !== '全部' && yearStr !== selectedYear) return;
-      if (selectedMonth !== '全部' && monthStr !== selectedMonth) return;
+      
+      // 优先使用range的时间范围进行过滤
+      if (range && range.startDate && range.endDate) {
+        const sessionDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        if (sessionDate < range.startDate || sessionDate > range.endDate) return;
+      } else {
+        // 回落到旧的年月过滤逻辑
+        const yearStr = date.getFullYear().toString();
+        const monthStr = `${yearStr}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        if (selectedYear !== '全部' && yearStr !== selectedYear) return;
+        if (selectedMonth !== '全部' && monthStr !== selectedMonth) return;
+      }
       
       // 获取参与者列表
       const participants = s.participants.slice();
@@ -325,10 +349,18 @@ Page({
     
     sessions.forEach(s => {
       const date = new Date(s.createdAt);
-      const yearStr = date.getFullYear().toString();
-      const monthStr = `${yearStr}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      if (selectedYear !== '全部' && yearStr !== selectedYear) return;
-      if (selectedMonth !== '全部' && monthStr !== selectedMonth) return;
+      
+      // 优先使用range的时间范围进行过滤
+      if (range && range.startDate && range.endDate) {
+        const sessionDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        if (sessionDate < range.startDate || sessionDate > range.endDate) return;
+      } else {
+        // 回落到旧的年月过滤逻辑
+        const yearStr = date.getFullYear().toString();
+        const monthStr = `${yearStr}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        if (selectedYear !== '全部' && yearStr !== selectedYear) return;
+        if (selectedMonth !== '全部' && monthStr !== selectedMonth) return;
+      }
       
       // 检查当前用户是否参与了这局游戏
       if (!s.participants.includes(currentName) && !(s.taiSwitch && currentName === '台')) {
@@ -439,15 +471,49 @@ Page({
     }
 
     const range = { startDate: fmt(start), endDate: fmt(end), groupBy, mode: this.data.mode };
-    console.log('[MINE] stats range=', range);
+    this.setData({ statsRange: range });
+    this.refreshAll(range); // 新增统一刷新入口
+  },
 
-    if (typeof this.loadStats === 'function') this.loadStats(range);
-    else if (typeof this.fetchStats === 'function') this.fetchStats(range);
-    else {
-      // TODO: 接入后端请求；期望返回聚合后的总场/胜场/胜率/总得分
-      console.log('[MINE] TODO: 接入统计数据API，参数:', range);
-      // 临时使用原有的 computeStats 方法
-      this.computeStats();
+  // 新增统一刷新入口
+  async refreshAll(range) {
+    // 去抖：避免连续切换导致并发
+    if (this._refreshing) return; 
+    this._refreshing = true;
+    const done = () => { this._refreshing = false; };
+
+    try {
+      this.setData({ loadingCore: true, loadingDetail: true });
+
+      // 1) 核心数据
+      if (typeof this.loadStats === 'function') {
+        await this.loadStats(range);
+      } else if (typeof this.fetchStats === 'function') {
+        // 兼容旧接口（若返回 summary/detail 均有，顺手灌入）
+        const res = await this.fetchStats(range);
+        if (res && res.summary) this.setData({ personalSummary: res.summary });
+        if (res && res.detail) this.setData({ stats: res.detail });
+      } else if (typeof this.computeStats === 'function') {
+        await this.computeStats(range);
+      }
+
+      // 2) 详细统计（若有独立方法就再调一次；否则认为由上一步已返回）
+      if (typeof this.loadDetail === 'function') {
+        await this.loadDetail(range);
+      } else if (typeof this.fetchDetail === 'function') {
+        const det = await this.fetchDetail(range);
+        if (det) this.setData({ detailStats: det });
+      }
+
+      // 统一日志
+      console.log('[LINK] core & detail refreshed with range =', range);
+      console.log('[LINK] coreSummary=', this.data.personalSummary);
+      console.log('[LINK] detailStats=', this.data.stats);
+    } catch (e) {
+      console.warn('[LINK] refreshAll error', e);
+    } finally {
+      this.setData({ loadingCore: false, loadingDetail: false });
+      done();
     }
   }
 });
