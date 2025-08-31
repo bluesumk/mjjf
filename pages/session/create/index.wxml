@@ -67,13 +67,20 @@
   </view>
   
   <!-- 新增参与者弹窗 -->
-  <view wx:if="{{showAddModal}}" class="modal-overlay">
-    <view class="modal">
+  <!-- 蒙层：禁止穿透滚动 -->
+  <view class="modal-mask" wx:if="{{showAddModal}}" catchtouchmove="true">
+    <view class="modal-panel">
       <view class="modal-title">添加参与者</view>
-      <input class="modal-input" placeholder="请输入姓名" value="{{newName}}" bindinput="inputChange"></input>
-      <view class="modal-buttons">
-        <button type="default" size="default" bindtap="cancelAdd">取消</button>
-        <button type="primary" size="default" bindtap="confirmAdd">确认</button>
+
+      <!-- 输入框：保持既有 bindinput/placeholder，不要改逻辑 -->
+      <input class="modal-input"
+             placeholder="请输入姓名"
+             value="{{newName}}"
+             bindinput="inputChange" />
+
+      <view class="modal-actions">
+        <button class="btn ghost" bindtap="cancelAdd">取消</button>
+        <button class="btn primary" bindtap="confirmAdd">确认</button>
       </view>
     </view>
   </view>
