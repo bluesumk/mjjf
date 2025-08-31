@@ -495,7 +495,7 @@
   opacity: .9;
 }
 
-/* 稳定布局样式 */
+/* 标题与控件区 */
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -515,27 +515,30 @@
   gap: 12rpx;
 }
 
-.pill {
-  min-width: 180rpx; /* 固定最小宽度，避免文案变长造成位移 */
-  text-align: center;
-  padding: 10rpx 18rpx;
+/* 胶囊与按钮统一高度，等高对齐 */
+.pill, .btn-link {
+  height: 56rpx; 
+  line-height: 56rpx;
+  padding: 0 22rpx; 
   border-radius: 999rpx;
-  border: 1rpx solid #e5e6eb;
-  background: #fff;
-  color: #333;
-  font-size: 24rpx;
+  display: inline-block; 
+  text-align: center; 
+  font-size: 28rpx;
 }
 
-.btn-ghost {
-  padding: 10rpx 18rpx;
-  border-radius: 999rpx;
-  border: 1rpx solid #e5e6eb;
-  background: #fff;
-  color: #1677FF;
-  line-height: 1;
-  font-size: 24rpx;
+.pill { 
+  border: 1rpx solid #e5e6eb; 
+  background: #fff; 
+  color: #333; 
+  min-width: 180rpx; 
 }
 
-.btn-ghost:active {
-  opacity: .9;
+.btn-link {
+  border: 1rpx solid #e5e6eb; 
+  background: #fff;
+  color: #5E6C84;  /* 弱链接色，降低视觉强度 */
+}
+
+.btn-link:active { 
+  opacity: .9; 
 }

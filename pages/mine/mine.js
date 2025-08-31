@@ -391,69 +391,57 @@ Page({
     wx.navigateTo({ url: target });
   },
 
-  // —— 月份选择（稳定的 month picker） —— //
+  // 月份选择
   onMonthChange(e) {
     const val = e.detail.value; // 'YYYY-MM'
-    this.setData({
-      mode: 'month',
-      monthValue: val,
-      monthLabel: val
+    this.setData({ 
+      mode: 'month', 
+      monthValue: val, 
+      monthLabel: val 
     }, this.updateRangeAndFetch);
   },
 
-  // —— 切换按年/按月 —— //
-  onToggleYearMode() {
-    if (this.data.mode === 'year') {
-      // 切回按月：保持当前 monthValue 不变
+  // 选择年份 -> 进入 year 模式
+  onYearPicked(e) {
+    const idx = Number(e.detail.value || 0);
+    const year = this.data.yearOptions[idx];
+    this.setData({ 
+      mode: 'year', 
+      yearIndex: idx, 
+      year 
+    }, this.updateRangeAndFetch);
+  },
+
+  // 返回按月模式（保持当前 monthValue 不变）
+  backToMonth() {
+    if (this.data.mode !== 'month') {
       this.setData({ mode: 'month' }, this.updateRangeAndFetch);
-    } else {
-      // 进入按年：弹出年份选择器（一次），选中后进入 year 模式
-      this.setData({ showYearPicker: true });
     }
   },
 
-  onYearPicked(e) {
-    const idx = Number(e.detail.value || 0);
-    const y = this.data.yearOptions[idx];
-    this.setData({
-      yearIndex: idx,
-      year: y,
-      mode: 'year',
-      showYearPicker: false
-    }, this.updateRangeAndFetch);
-  },
-
-  onYearPickCancel() {
-    this.setData({ showYearPicker: false });
-  },
-
-  // —— 统一计算时间范围并拉取 —— //
+  // 统一计算时间范围并取数（自然月/自然年；含起止日）
   updateRangeAndFetch() {
     const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    
-    let start, end, groupBy = 'day', mode = this.data.mode;
+    let start, end, groupBy = 'day';
 
-    if (mode === 'month') {
+    if (this.data.mode === 'month') {
       const [y, m] = this.data.monthValue.split('-').map(n => Number(n));
       start = new Date(y, m-1, 1);
-      end   = new Date(y, m,   0); // 当月最后一天
+      end   = new Date(y, m,   0);
       groupBy = 'day';
-    } else { // 'year'
+    } else {
       const y = Number(this.data.year);
       start = new Date(y, 0, 1);
       end   = new Date(y, 11, 31);
       groupBy = 'month';
     }
 
-    const range = { startDate: fmt(start), endDate: fmt(end), groupBy, mode };
+    const range = { startDate: fmt(start), endDate: fmt(end), groupBy, mode: this.data.mode };
     console.log('[MINE] stats range=', range);
 
-    // —— 统一取数口 —— //
-    if (typeof this.loadStats === 'function') {
-      this.loadStats(range);
-    } else if (typeof this.fetchStats === 'function') {
-      this.fetchStats(range);
-    } else {
+    if (typeof this.loadStats === 'function') this.loadStats(range);
+    else if (typeof this.fetchStats === 'function') this.fetchStats(range);
+    else {
       // TODO: 接入后端请求；期望返回聚合后的总场/胜场/胜率/总得分
       console.log('[MINE] TODO: 接入统计数据API，参数:', range);
       // 临时使用原有的 computeStats 方法

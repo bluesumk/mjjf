@@ -49,20 +49,16 @@
       <text class="title">核心数据</text>
 
       <view class="controls">
-        <!-- 月份胶囊：使用 date picker fields=month，稳定不抖动 -->
+        <!-- 月份胶囊：date picker (fields=month) -->
         <picker mode="date" fields="month" value="{{monthValue}}" bindchange="onMonthChange">
           <view class="pill">{{ monthLabel }}</view>
         </picker>
 
-        <!-- 右侧轻按钮：按年统计 / 按月统计（切换） -->
-        <button class="btn-ghost" bindtap="onToggleYearMode">
-          {{ mode === 'year' ? '按月统计' : '按年统计' }}
-        </button>
-
-        <!-- 隐藏的年份选择器：仅在进入 year 模式时弹一次 -->
-        <picker wx:if="{{showYearPicker}}" mode="selector" range="{{yearOptions}}" value="{{yearIndex}}" bindchange="onYearPicked" bindcancel="onYearPickCancel">
-          <view style="display:none;"></view>
+        <!-- 月/年切换：month 模式下用年份 picker 包裹"按年统计"；year 模式下显示"按月统计"按钮 -->
+        <picker wx:if="{{mode==='month'}}" mode="selector" range="{{yearOptions}}" value="{{yearIndex}}" bindchange="onYearPicked">
+          <view class="btn-link">按年统计</view>
         </picker>
+        <button wx:elif="{{mode==='year'}}" class="btn-link" bindtap="backToMonth">按月统计</button>
       </view>
     </view>
     <view class="metrics-grid">
