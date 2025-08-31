@@ -71,5 +71,10 @@
       </view>
     </view>
   </view>
+
+  <!-- 调试用：无任何父级拦截，固定定位在右下角；上线前可删除 -->
+  <button wx:if="{{canShare}}"
+          class="share-debug"
+          open-type="share">测试分享</button>
 </view>
 

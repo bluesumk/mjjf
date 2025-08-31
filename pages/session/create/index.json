@@ -1,4 +1,5 @@
 {
-  "navigationBarTitleText": "创建牌局"
+  "navigationBarTitleText": "创建牌局",
+  "enableShareAppMessage": true
 }
 

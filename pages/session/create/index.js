@@ -379,12 +379,13 @@ Page({
    * QA-FIX: A3 统一 onShareAppMessage（仅一处）
    */
   onShareAppMessage() {
+    const ts = Date.now();
     const { sessionId: sid, inviteToken: token, shareImageUrl } = this.data || {};
-    const path = `/pages/invite/join/index?sid=${encodeURIComponent(sid)}&token=${encodeURIComponent(token)}`;
-    console.log('[SHARE] path=', path, 'imageUrl=', shareImageUrl);
+    const p = `/pages/invite/join/index?sid=${encodeURIComponent(sid||this.data.sessionId||'')}&token=${encodeURIComponent(token||this.data.inviteToken||'')}`;
+    console.log('[SHARE] fired ts=', ts, 'path=', p, 'img=', shareImageUrl);
     return {
-      title: `邀请你加入麻将计分，邀请码：${(token||'').toUpperCase()}`,
-      path,
+      title: '邀请你加入麻将计分',
+      path: p,
       imageUrl: shareImageUrl || '/assets/share-card.png'
     };
   },
