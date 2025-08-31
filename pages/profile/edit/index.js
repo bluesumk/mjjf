@@ -4,7 +4,25 @@ Page({
     nickName: '' 
   },
   
-  onLoad() {
+  async onLoad() {
+    // 优先从云端读取，回落到本地
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'profile',
+        data: { action: 'get' }
+      });
+      if (result?.ok && result.data) {
+        this.setData({ 
+          avatarUrl: result.data.avatarUrl || result.data.avatarFileID || '', 
+          nickName: result.data.nickName || '' 
+        });
+        return;
+      }
+    } catch (e) {
+      console.warn('[PROFILE] 云端读取失败，使用本地数据:', e);
+    }
+    
+    // 回落到本地数据
     const app = getApp();
     const prof = wx.getStorageSync('userProfile') || app.globalData?.userProfile || {};
     this.setData({ 
@@ -49,30 +67,60 @@ Page({
     });
   },
   
-  onSave() {
+  async onSave() {
     // 最小校验：昵称 1-20
     const name = (this.data.nickName || '').trim();
     if (name.length === 0 || name.length > 20) {
       wx.showToast({ title: '请输入1-20位昵称', icon: 'none' }); 
       return;
     }
-    
-    // 本地回写 + 全局回写（保持原有后端/云端保存逻辑不变）
-    const prof = { avatarUrl: this.data.avatarUrl, nickName: name };
-    wx.setStorageSync('userProfile', prof);
-    const app = getApp(); 
-    app.globalData = app.globalData || {}; 
-    app.globalData.userProfile = prof;
 
-    // 如果项目已有保存到云端的逻辑，继续调用原有方法（留钩子）：
-    if (typeof this.saveProfileToCloud === 'function') {
-      this.saveProfileToCloud(prof).finally(() => {
-        wx.showToast({ title: '已保存', icon: 'success' });
-        setTimeout(() => wx.navigateBack(), 300);
+    wx.showLoading({ title: '保存中...' });
+    
+    try {
+      // 先校验昵称可用性
+      const checkResult = await wx.cloud.callFunction({
+        name: 'profile',
+        data: { action: 'checkNick', nickName: name }
       });
-    } else {
+      
+      if (!checkResult.result?.ok) {
+        const error = checkResult.result?.error || {};
+        wx.showToast({ title: error.msg || '昵称校验失败', icon: 'none' });
+        return;
+      }
+
+      // 保存到云端
+      const saveResult = await wx.cloud.callFunction({
+        name: 'profile',
+        data: { 
+          action: 'upsert', 
+          nickName: name,
+          avatarUrl: this.data.avatarUrl 
+        }
+      });
+
+      if (!saveResult.result?.ok) {
+        const error = saveResult.result?.error || {};
+        wx.showToast({ title: error.msg || '保存失败', icon: 'none' });
+        return;
+      }
+
+      // 同步到本地存储和全局状态
+      const prof = { avatarUrl: this.data.avatarUrl, nickName: name };
+      wx.setStorageSync('userProfile', prof);
+      const app = getApp(); 
+      app.globalData = app.globalData || {}; 
+      app.globalData.userProfile = prof;
+
       wx.showToast({ title: '已保存', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 300);
+
+    } catch (e) {
+      console.error('[PROFILE] 保存失败:', e);
+      wx.showToast({ title: '网络错误，请重试', icon: 'none' });
+    } finally {
+      wx.hideLoading();
     }
   }
 });
