@@ -43,7 +43,7 @@
         <button size="mini" class="refresh-btn" bindtap="refreshQRCode" disabled="{{qrGenerating}}">
           {{qrGenerating ? '生成中...' : '刷新'}}
         </button>
-        <button size="mini" class="share-btn" open-type="share" disabled="{{!canShare}}">分享邀请</button>
+        <button class="share-btn" open-type="share" wx:if="{{canShare}}">分享邀请</button>
       </view>
     </view>
     
