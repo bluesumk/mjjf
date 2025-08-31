@@ -21,7 +21,8 @@ Page({
     // 分享相关数据
     sid: null,
     token: null,
-    shareReady: false
+    shareReady: false,         // 保留：用于原有的二维码显示逻辑
+    canShare: false            // 新增：仅控制分享按钮是否可点
   },
 
   onLoad() {
@@ -61,6 +62,15 @@ Page({
   },
 
   /**
+   * 更新分享按钮可点状态（兼容 sid/token 与 sessionId/inviteToken 两种命名）
+   */
+  updateCanShare() {
+    const d = this.data || {};
+    const hasPair = !!((d.sid && d.token) || (d.sessionId && d.inviteToken));
+    if (hasPair !== d.canShare) this.setData({ canShare: hasPair });
+  },
+
+  /**
    * 生成邀请信息
    */
   async generateInviteInfo() {
@@ -82,10 +92,13 @@ Page({
         // 设置分享参数
         sid: sessionId,
         token: inviteToken,
-        shareReady: !!(sessionId && inviteToken)
+        shareReady: !!(sessionId && inviteToken)  // 保留旧逻辑
+      }, () => {
+        this.updateCanShare();              // 新增：有 sid/token 即允许分享
       });
 
       console.log('[CREATE] 生成邀请信息:', { sessionId, inviteToken, inviteCode });
+      console.log('[CREATE] canShare=', this.data.canShare, 'shareReady=', this.data.shareReady, 'sid/token=', this.data.sid || this.data.sessionId, this.data.token || this.data.inviteToken);
 
       // 立刻写入云端数据库
       try {
@@ -135,6 +148,9 @@ Page({
           qrGenerating: false,
           shareImageUrl: cloudResult.url,
           shareReady: true
+        }, () => {
+          this.updateCanShare();
+          console.log('[CREATE] QR成功后 canShare=', this.data.canShare, 'shareReady=', this.data.shareReady, 'sid/token=', this.data.sid || this.data.sessionId, this.data.token || this.data.inviteToken);
         });
         return;
       }
@@ -148,6 +164,10 @@ Page({
         qrError: '小程序码生成失败，请使用下方邀请码分享',
         qrGenerating: false,
         qrCodeUrl: null
+      }, () => {
+        // 不再禁用分享按钮；仅维持现有降级逻辑
+        this.updateCanShare();
+        console.log('[CREATE] QR失败后 canShare=', this.data.canShare, 'shareReady=', this.data.shareReady, 'sid/token=', this.data.sid || this.data.sessionId, this.data.token || this.data.inviteToken);
       });
       
       wx.showToast({
@@ -222,11 +242,15 @@ Page({
       if (r.ok) {
         if (r.url) {
           // 用临时URL展示，同时保存用于分享
-          this.setData({ shareImageUrl: r.url, shareReady: true });
+          this.setData({ shareImageUrl: r.url, shareReady: true }, () => {
+            this.updateCanShare();
+          });
           return { success: true, url: r.url, via: r.via };
         } else if (r.base64) {
           // 或者直接展示 base64
-          this.setData({ shareReady: true });
+          this.setData({ shareReady: true }, () => {
+            this.updateCanShare();
+          });
           return { success: true, base64: r.base64, via: r.via };
         } else {
           throw new Error('NO_IMAGE_PAYLOAD');
