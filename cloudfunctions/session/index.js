@@ -1,5 +1,5 @@
 const cloud = require('wx-server-sdk');
-cloud.init({ env: 'cloudbase-3go6h0x7b3bc5b04' });
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV, traceUser: true });
 const db = cloud.database();
 const coll = db.collection('sessions');
 const now = () => db.serverDate();
@@ -61,4 +61,8 @@ exports.main = async (event, context) => {
 
   return { ok:false, error:{code:'BAD_ACTION', msg:`unknown action ${action}`} };
 };
+
+
+
+
 

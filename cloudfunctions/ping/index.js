@@ -1,3 +1,3 @@
 const cloud = require('wx-server-sdk');
-cloud.init({ env: 'cloudbase-3go6h0x7b3bc5b04' });
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV, traceUser: true });
 exports.main = async () => ({ ok: true, ts: Date.now() });

@@ -45,25 +45,19 @@ Page({
       return;
     }
 
-    try {
-      const { result } = await wx.cloud.callFunction({
-        name: 'session',
-        data: { action: 'validate', sid, token }
-      });
-      
-      console.log('[JOIN] validate result=', result);
-      
-      if (result && result.ok) {
-        this.setData({ sid, token, canJoin: true });
-        // TODO: 继续加载参与者、进入计分流程……
-      } else {
-        const e = (result && result.error && (result.error.msg || result.error.code)) || '校验失败';
-        this.setData({ error: e });
-      }
-    } catch (err) {
-      console.error('[JOIN] validate error', err);
-      this.setData({ error: '网络错误，请检查网络连接' });
-    }
+    // 调 session.validate
+    wx.cloud.callFunction({
+      name:'session',
+      data:{ action:'validate', sid, token }
+    }).then(res => {
+      console.log('[JOIN] validate ok', res);
+      this.setData({ sid, token, canJoin: true });
+      // 进入牌局...
+    }).catch(err => {
+      console.error('[JOIN] validate fail', err);
+      // 显示 "无法加入牌局" 提示
+      this.setData({ error: '无法加入牌局' });
+    });
   },
 
   /**

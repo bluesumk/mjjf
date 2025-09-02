@@ -26,6 +26,17 @@
   pointer-events: auto;
 }
 
+/* 确保主分享按钮样式 */
+.btn-share-primary {
+  position: relative;
+  z-index: 10;
+}
+
+.btn-share--disabled {
+  background: #E5E6EB;
+  color: #9AA1A9;
+}
+
 /* 让可能的覆盖层"不吃点" */
 .mask, .overlay, .qr-overlay, .card-mask {
   pointer-events: none !important;

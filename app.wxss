@@ -251,3 +251,135 @@ input:focus {
   50% { transform: scale(1.05); }
   100% { transform: scale(1); opacity: 1; }
 }
+
+/* 新增：加入页面相关样式 */
+.join__loading { 
+  padding: 60rpx 24rpx; 
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.loading-icon {
+  font-size: 80rpx;
+  animation: bounce 1.5s infinite;
+}
+
+.loading-text {
+  font-size: 32rpx;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.room-info {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  margin-top: 16rpx;
+}
+
+.join__error { 
+  padding: 60rpx 24rpx; 
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.error-icon {
+  font-size: 80rpx;
+}
+
+.error-title {
+  font-size: 36rpx;
+  color: var(--danger-color);
+  font-weight: 600;
+}
+
+.error-message {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.error-actions {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 32rpx;
+}
+
+.retry-btn, .home-btn {
+  padding: 16rpx 32rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  border: none;
+}
+
+.retry-btn {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.home-btn {
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  border: 2rpx solid var(--border-color);
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-20rpx);
+  }
+  60% {
+    transform: translateY(-10rpx);
+  }
+}
+
+/* 新增：个人资料卡片相关样式 */
+.profile-card { 
+  display: flex; 
+  align-items: center; 
+  padding: 24rpx; 
+}
+
+.profile-card .avatar { 
+  width: 96rpx; 
+  height: 96rpx; 
+  border-radius: 50%; 
+  margin-right: 16rpx; 
+}
+
+/* 新增：按钮轮廓样式 */
+.btn-outline {
+  background-color: transparent;
+  border: 2rpx solid var(--primary-color);
+  color: var(--primary-color);
+  border-radius: 8rpx;
+  padding: 8rpx 16rpx;
+  font-size: 24rpx;
+}
+
+.btn-outline:disabled {
+  border-color: var(--text-light);
+  color: var(--text-light);
+}

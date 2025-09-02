@@ -1,6 +1,7 @@
 // pages/session/create/index.js
 // 创建牌局页面
 const app = getApp();
+const config = require('../../../config.js');
 const sceneUtils = require('../../../utils/scene.js');
 const qrcodeUtils = require('../../../utils/qrcode.js');
 const inviteCodeUtils = require('../../../tools/invite-code.js');
@@ -21,8 +22,7 @@ Page({
     // 分享相关数据
     sid: null,
     token: null,
-    shareReady: false,         // 保留：用于原有的二维码显示逻辑
-    canShare: false            // 新增：仅控制分享按钮是否可点
+    shareReady: false
   },
 
   onLoad() {
@@ -48,7 +48,7 @@ Page({
   updateShareMenu() {
     wx.showShareMenu({ 
       withShareTicket: true, 
-      menus: ['shareAppMessage'] 
+      menus: config.share.menus
     });
     wx.updateShareMenu({
       withShareTicket: true,
@@ -59,25 +59,6 @@ Page({
         console.error('[CREATE] 分享菜单配置失败:', error);
       }
     });
-  },
-
-  /**
-   * 更新分享按钮可点状态（兼容 sid/token 与 sessionId/inviteToken 两种命名）
-   */
-  updateCanShare() {
-    const d = this.data || {};
-    const sid   = d.sid   || d.sessionId;
-    const token = d.token || d.inviteToken;
-    const ok = !!(sid && token);
-    if (ok !== d.canShare) {
-      this.setData({ canShare: ok }, () => {
-        // 当 canShare 变为 true 时，确保分享菜单已开启
-        if (ok && wx && wx.showShareMenu) {
-          console.log('[CREATE] updateCanShare - 重新开启分享菜单');
-          wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
-        }
-      });
-    }
   },
 
   /**
@@ -102,29 +83,23 @@ Page({
         // 设置分享参数
         sid: sessionId,
         token: inviteToken,
-        shareReady: !!(sessionId && inviteToken)  // 保留旧逻辑
-      }, () => {
-        this.updateCanShare();              // 新增：有 sid/token 即允许分享
-        if (this.data.canShare && wx && wx.showShareMenu) {
-          wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
-        }
+        shareReady: !!(sessionId && inviteToken)
       });
 
       console.log('[CREATE] 生成邀请信息:', { sessionId, inviteToken, inviteCode });
-      console.log('[CREATE] canShare=', this.data.canShare, 'shareReady=', this.data.shareReady, 'sid/token=', this.data.sid || this.data.sessionId, this.data.token || this.data.inviteToken);
+
+      // 如果需要更新 wx.showShareMenu（iOS 真机有时需再次调用）
+      if (this.data.shareReady && wx.showShareMenu) {
+        wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
+      }
 
       // 立刻写入云端数据库
       try {
         await wx.cloud.callFunction({
-          name: 'session',
-          data: { 
-            action: 'create', 
-            sid: sessionId, 
-            token: inviteToken, 
-            meta: { tableMode: this.data?.tableMode } 
-          }
+          name:'session',
+          data:{ action:'create', sid:sessionId, token:inviteToken, meta:{ tableMode:this.data.tableMode } }
         });
-        console.log('[CREATE] 会话已写入云端');
+        console.log('[SESSION] create ok', sessionId, inviteToken);
       } catch (dbError) {
         console.error('[CREATE] 写入云端失败:', dbError);
       }
@@ -161,12 +136,6 @@ Page({
           qrGenerating: false,
           shareImageUrl: cloudResult.url,
           shareReady: true
-        }, () => {
-          this.updateCanShare();
-          if (this.data.canShare && wx && wx.showShareMenu) {
-            wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
-          }
-          console.log('[CREATE] QR成功后 canShare=', this.data.canShare, 'shareReady=', this.data.shareReady, 'sid/token=', this.data.sid || this.data.sessionId, this.data.token || this.data.inviteToken);
         });
         return;
       }
@@ -180,13 +149,6 @@ Page({
         qrError: '小程序码生成失败，请使用下方邀请码分享',
         qrGenerating: false,
         qrCodeUrl: null
-      }, () => {
-        // 不再禁用分享按钮；仅维持现有降级逻辑
-        this.updateCanShare();
-        if (this.data.canShare && wx && wx.showShareMenu) {
-          wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
-        }
-        console.log('[CREATE] QR失败后 canShare=', this.data.canShare, 'shareReady=', this.data.shareReady, 'sid/token=', this.data.sid || this.data.sessionId, this.data.token || this.data.inviteToken);
       });
       
       wx.showToast({
@@ -261,21 +223,11 @@ Page({
       if (r.ok) {
         if (r.url) {
           // 用临时URL展示，同时保存用于分享
-          this.setData({ shareImageUrl: r.url, shareReady: true }, () => {
-            this.updateCanShare();
-            if (this.data.canShare && wx && wx.showShareMenu) {
-              wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
-            }
-          });
+          this.setData({ shareImageUrl: r.url, shareReady: true });
           return { success: true, url: r.url, via: r.via };
         } else if (r.base64) {
           // 或者直接展示 base64
-          this.setData({ shareReady: true }, () => {
-            this.updateCanShare();
-            if (this.data.canShare && wx && wx.showShareMenu) {
-              wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
-            }
-          });
+          this.setData({ shareReady: true });
           return { success: true, base64: r.base64, via: r.via };
         } else {
           throw new Error('NO_IMAGE_PAYLOAD');
@@ -401,16 +353,26 @@ Page({
   },
 
   /**
-   * QA-FIX: A3 统一 onShareAppMessage（仅一处）
+   * 分享邀请功能（优化版）
    */
   onShareAppMessage() {
-    const { sid, token, shareImageUrl } = this.data || {};
-    const path = `/pages/invite/join/index?sid=${encodeURIComponent(sid||this.data.sessionId||'')}&token=${encodeURIComponent(token||this.data.inviteToken||'')}`;
-    console.log('[SHARE] fired', Date.now(), path, !!shareImageUrl);
+    const { sessionId: sid, inviteToken: token, shareImageUrl } = this.data || {};
+    
+    if (!sid || !token) {
+      return {
+        title: config.share.defaultTitle,
+        path: config.pages.index,
+        imageUrl: config.share.defaultImageUrl
+      };
+    }
+
+    const path = `/pages/invite/join/index?meetingId=${encodeURIComponent(sid)}&invite=${encodeURIComponent(token)}`;
+    console.log('[SHARE] 分享路径:', path);
+    
     return {
-      title: '邀请你加入麻将计分',
+      title: `邀请你加入麻将计分，房间号：${(token||'').toUpperCase()}`,
       path,
-      imageUrl: shareImageUrl || '/assets/share-card.png'
+      imageUrl: shareImageUrl || config.share.defaultImageUrl
     };
   },
 
@@ -418,17 +380,36 @@ Page({
    * 页面显示时开启分享
    */
   onShow() {
-    console.log('[CREATE] onShow - 开启分享菜单');
-    if (wx && wx.showShareMenu) {
-      wx.showShareMenu({ 
-        withShareTicket: true, 
-        menus: ['shareAppMessage'],
-        success: () => {
-          console.log('[CREATE] showShareMenu 成功');
-        },
-        fail: (error) => {
-          console.error('[CREATE] showShareMenu 失败:', error);
-        }
+    wx.showShareMenu({ 
+      withShareTicket: true, 
+      menus: config.share.menus 
+    });
+  },
+
+  /**
+   * 复制邀请码到剪贴板
+   */
+  async copyInviteCode() {
+    const { inviteToken } = this.data;
+    if (!inviteToken) {
+      wx.showToast({ icon: 'none', title: '邀请码未生成' });
+      return;
+    }
+
+    try {
+      await wx.setClipboardData({ 
+        data: inviteToken.toUpperCase() 
+      });
+      wx.showToast({ 
+        title: '邀请码已复制', 
+        icon: 'success',
+        duration: 1500 
+      });
+    } catch (error) {
+      console.error('复制失败:', error);
+      wx.showToast({ 
+        icon: 'none', 
+        title: '复制失败' 
       });
     }
   }

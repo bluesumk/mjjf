@@ -1,5 +1,6 @@
 // pages/index/index.js
 const app = getApp();
+const config = require('../../config.js');
 
 Page({
   /**
@@ -17,7 +18,9 @@ Page({
       totalScore: 0
     },
     // 最近对局
-    recentGames: []
+    recentGames: [],
+    // 新增：房间号
+    roomId: ""
   },
 
   onLoad() {
@@ -26,6 +29,14 @@ Page({
 
   onShow() {
     this.loadData();
+    try { 
+      wx.showShareMenu({ 
+        withShareTicket: true, 
+        menus: config.share.menus 
+      }); 
+    } catch (e) {
+      console.warn('配置分享菜单失败:', e);
+    }
   },
 
   /**
@@ -344,5 +355,26 @@ Page({
     const gameId = e.currentTarget.dataset.id;
     // 这里可以跳转到对局详情页面，目前先跳转到记录页面
     this.goRecords();
+  },
+
+  /**
+   * 分享功能（优化版）
+   */
+  onShareAppMessage() {
+    const { roomId } = this.data;
+    
+    if (!roomId) {
+      return { 
+        title: config.share.defaultTitle, 
+        path: config.pages.index,
+        imageUrl: config.share.defaultImageUrl
+      };
+    }
+    
+    return {
+      title: `邀请你加入麻将局（房间 ${roomId}）`,
+      path: `${config.pages.roomJoin}?meetingId=${encodeURIComponent(roomId)}`,
+      imageUrl: config.share.defaultImageUrl
+    };
   }
 });

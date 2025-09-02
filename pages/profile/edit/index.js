@@ -5,45 +5,14 @@ Page({
   },
   
   async onLoad() {
-    // 优先从云端读取，回落到本地
-    try {
-      const { result } = await wx.cloud.callFunction({
-        name: 'profile',
-        data: { action: 'get' }
-      });
-      if (result?.ok && result.data) {
-        let avatarUrl = result.data.avatarUrl || '';
-        
-        // 如果有云存储文件ID，转换为临时URL
-        if (result.data.avatarFileID) {
-          try {
-            const { fileList } = await wx.cloud.getTempFileURL({ 
-              fileList: [result.data.avatarFileID] 
-            });
-            avatarUrl = fileList?.[0]?.tempFileURL || avatarUrl;
-          } catch (e) {
-            console.warn('[PROFILE] 获取临时URL失败:', e);
-            avatarUrl = result.data.avatarFileID; // 回落到fileID
-          }
-        }
-        
-        this.setData({ 
-          avatarUrl, 
-          nickName: result.data.nickName || '' 
-        });
-        return;
-      }
-    } catch (e) {
-      console.warn('[PROFILE] 云端读取失败，使用本地数据:', e);
+    const { result } = await wx.cloud.callFunction({ name:'profile', data:{ action:'get' }});
+    const d = result?.data || {};
+    let avatarUrl = d.avatarUrl || '';
+    if (d.avatarFileID) {
+      const { fileList } = await wx.cloud.getTempFileURL({ fileList:[d.avatarFileID] });
+      avatarUrl = fileList?.[0]?.tempFileURL || avatarUrl;
     }
-    
-    // 回落到本地数据
-    const app = getApp();
-    const prof = wx.getStorageSync('userProfile') || app.globalData?.userProfile || {};
-    this.setData({ 
-      avatarUrl: prof.avatarUrl || '', 
-      nickName: prof.nickName || prof.nickname || '' 
-    });
+    this.setData({ nickName: d.nickName || '', avatarUrl });
   },
   
   onNameInput(e) { 

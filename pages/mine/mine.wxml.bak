@@ -1,30 +1,19 @@
 <!-- 我的页面 -->
 <view class="container mine-container fade-in">
-  <!-- Profile Card -->
-  <view class="profile-card" style="width: 708rpx; display: flex; box-sizing: border-box; position: relative; left: -20rpx; top: -28rpx">
-    <view class="profile-left" wx:if="{{user}}">
-      <image class="avatar" src="{{user.avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill" />
-      <view class="meta">
-        <text class="nickname">{{user.nickName || '微信用户'}}</text>
-        <text class="subtitle">麻将计分达人</text>
+  <view class="section">
+    <view class="card">
+      <!-- Profile Card -->
+      <view class="profile-card">
+        <view class="profile-left">
+          <image class="avatar" src="{{avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill" />
+          <view class="meta">
+            <text class="nickname">{{nickName || '微信用户'}}</text>
+            <text class="subtitle">麻将计分达人</text>
+          </view>
+        </view>
+        <button class="btn-outline" bindtap="gotoEditProfile">修改资料</button>
       </view>
     </view>
-    <view class="profile-left" wx:else>
-      <image class="avatar" src="/assets/avatar-placeholder.png" mode="aspectFill" />
-      <view class="meta">
-        <text class="nickname">微信用户</text>
-        <text class="subtitle">麻将计分达人</text>
-      </view>
-    </view>
-    
-    <button wx:if="{{!user || !user.synced}}" 
-            class="btn-outline" 
-            bindtap="handleSync"
-            style="width: 199rpx; display: block; box-sizing: border-box; left: 115rpx; top: -5rpx; position: relative">一键同步微信资料</button>
-    <button wx:else 
-            class="btn-outline" 
-            disabled
-            style="width: 199rpx; display: block; box-sizing: border-box; left: 115rpx; top: -5rpx; position: relative">已同步 ✓</button>
   </view>
 
   <!-- 原"数据统计"整块隐藏 -->
@@ -58,12 +47,10 @@
     </view>
   </view>
 
-  <!-- 核心数据 头部 + 时间筛选 -->
-  <view class="overview-card card" style="position: relative; left: 2rpx; top: -60rpx">
+  <view class="section">
     <view class="section-header">
-      <text class="title">核心数据</text>
-
-      <view class="controls">
+      <text class="section-title">核心数据</text>
+      <view class="section-actions">
         <!-- 月模式：月份胶囊（可改月） -->
         <picker wx:if="{{mode==='month'}}" mode="date" fields="month" value="{{monthValue}}" bindchange="onMonthChange">
           <view class="pill">{{ monthLabel }}</view>
@@ -75,17 +62,13 @@
         </picker>
 
         <!-- 右侧文本链接：month -> 触发年份选择；year -> 切回按月 -->
-        <block wx:if="{{mode==='month'}}">
-          <picker mode="selector" range="{{yearOptions}}" value="{{yearIndex}}" bindchange="onYearPicked">
-            <view class="btn-text">按年统计</view>
-          </picker>
-        </block>
-        <block wx:elif="{{mode==='year'}}">
-          <text class="btn-text" bindtap="backToMonth">按月统计</text>
-        </block>
+        <picker wx:if="{{mode==='month'}}" mode="selector" range="{{yearOptions}}" value="{{yearIndex}}" bindchange="onYearPicked">
+          <view class="btn-text">按年统计</view>
+        </picker>
+        <text wx:elif="{{mode==='year'}}" class="btn-text" bindtap="backToMonth">按月统计</text>
       </view>
     </view>
-    <view class="metrics-grid">
+      <view class="metrics-grid">
       <view class="metric-item">
         <view class="metric-icon games-icon">🎮</view>
         <text class="metric-value text-primary">{{personalSummary.totalGames}}</text>
@@ -109,12 +92,15 @@
     </view>
   </view>
 
-  <!-- 详细统计 -->
-  <view class="detailed-stats card" style="position: relative; left: 4rpx; top: -74rpx">
-    <view class="stats-header">
-      <text class="section-title title-medium">详细统计</text>
-      <text class="expand-hint text-light">展开查看更多数据</text>
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">详细统计</text>
+      <view class="section-actions">
+        <text class="hint">展开查看更多数据</text>
+      </view>
     </view>
+    <view class="card">
+      <view class="detailed-stats">
     
     <!-- 详细数据网格 -->
     <view class="detailed-grid">

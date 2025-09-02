@@ -1,5 +1,5 @@
 const cloud = require('wx-server-sdk');
-cloud.init({ env: process.env.TCB_ENV || process.env.SCF_NAMESPACE }); // 继承现有环境
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV, traceUser: true });
 const db = cloud.database();
 const _ = db.command;
 const coll = db.collection('users');

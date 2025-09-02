@@ -1,11 +1,6 @@
 {
-  "name": "session",
+  "name": "updateuser",
   "version": "1.0.0",
+  "main": "index.js",
   "dependencies": { "wx-server-sdk": "latest" }
 }
-
-
-
-
-
-

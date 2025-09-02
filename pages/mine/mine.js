@@ -1,5 +1,6 @@
 // pages/mine/mine.js
 const app = getApp();
+const config = require('../../config.js');
 
 Page({
   data: {
@@ -33,6 +34,8 @@ Page({
     avatarUrl: '',
     nickName: '',
     __profileReady: false,  // 用于首屏判断（不影响 UI）
+    // 新增：用户信息
+    user: null,
     // 功能网格数据
     gridItems: [
       { label: '我的会员', icon: '/assets/membership.png' },
@@ -84,46 +87,32 @@ Page({
   /**
    * 页面显示时刷新数据
    */
-  async onShow() {
-    const app = getApp();
+  async onShow() { 
+    this.hydrate(); 
     try {
-      // 优先从云端获取资料
       const { result } = await wx.cloud.callFunction({ 
         name: 'profile', 
         data: { action: 'get' } 
       });
-      
-      let avatarUrl = result?.data?.avatarUrl || '';
-      
-      // 如果有云存储文件ID，转换为临时URL
-      if (result?.data?.avatarFileID) {
-        try {
-          const { fileList } = await wx.cloud.getTempFileURL({ 
-            fileList: [result.data.avatarFileID] 
-          });
-          avatarUrl = fileList?.[0]?.tempFileURL || avatarUrl;
-        } catch (e) {
-          console.warn('[MINE] 获取临时URL失败:', e);
-        }
+      const prof = result?.data || {};
+      let avatarUrl = prof.avatarUrl || '';
+      if (prof.avatarFileID) {
+        const { fileList } = await wx.cloud.getTempFileURL({ fileList: [prof.avatarFileID] });
+        avatarUrl = fileList?.[0]?.tempFileURL || avatarUrl;
       }
-      
-      const nickName = result?.data?.nickName || 
-                      (wx.getStorageSync('userProfile')||{}).nickName || 
-                      app.globalData?.userProfile?.nickName || '';
-      
-      this.setData({ avatarUrl, nickName, __profileReady: true });
-      wx.setStorageSync('userProfile', { avatarUrl, nickName });
-    } catch (e) {
-      console.warn('[MINE] 云端数据获取失败，使用本地数据:', e);
-      // 回落到本地数据
+      this.setData({ avatarUrl, nickName: prof.nickName || '', __profileReady: true });
+      wx.setStorageSync('userProfile', { avatarUrl, nickName: prof.nickName || '' });
+      getApp().globalData.userProfile = { avatarUrl, nickName: prof.nickName || '' };
+    } catch(e) {
       const cache = wx.getStorageSync('userProfile') || {};
-      this.setData({ 
-        avatarUrl: cache.avatarUrl || '', 
-        nickName: cache.nickName || cache.nickname || this.data.nickname || '',
-        __profileReady: true
-      });
+      this.setData({ avatarUrl: cache.avatarUrl || '', nickName: cache.nickName || '', __profileReady: true });
     }
     this.refreshData();
+  },
+
+  hydrate() {
+    const u = (function(){ try { return wx.getStorageSync('user') || null; } catch (e) { return null; } })();
+    this.setData({ user: u });
   },
   
   /**
@@ -419,47 +408,57 @@ Page({
   },
 
   /**
-   * 一键同步微信资料
+   * 处理同步微信资料（优化版）
+   */
+  async handleSync() {
+    try {
+      const updatedUser = await app.getUserProfileAndSave();
+      this.setData({ user: updatedUser });
+      wx.showToast({ 
+        title: '同步成功', 
+        icon: 'success',
+        duration: 1500 
+      });
+    } catch (error) {
+      console.warn('[sync] 同步失败:', error);
+      
+      let errorMsg = '同步失败';
+      if (error.errMsg && error.errMsg.includes('auth deny')) {
+        errorMsg = '用户拒绝授权';
+      } else if (error.message && error.message.includes('getUserProfile')) {
+        errorMsg = '微信版本过低';
+      }
+      
+      wx.showToast({ 
+        icon: 'none', 
+        title: errorMsg,
+        duration: 2000
+      });
+    }
+  },
+
+  /**
+   * 一键同步微信资料（保留原有方法）
    */
   async syncWeChatProfile() {
-    if (!wx.getUserProfile) {
-      wx.showToast({ title: '微信版本过低，无法获取资料', icon: 'none' }); 
-      return;
+    if (!wx.getUserProfile) { wx.showToast({ title:'微信版本过低', icon:'none' }); return; }
+    const res = await wx.getUserProfile({ desc:'用于完善资料' });
+    const nick = res.userInfo?.nickName || '';
+    const avatar = res.userInfo?.avatarUrl || '';
+    const up = await wx.cloud.callFunction({
+      name:'profile',
+      data:{ action:'upsert', nickName:nick, avatarUrl:avatar }
+    });
+    let avatarUrl = avatar;
+    const data = up?.result?.data || {};
+    if (data.avatarFileID) {
+      const r = await wx.cloud.getTempFileURL({ fileList:[data.avatarFileID] });
+      avatarUrl = r.fileList?.[0]?.tempFileURL || avatar;
     }
-    try {
-      const res = await wx.getUserProfile({ desc: '用于完善资料' }); // 必须用户手势触发
-      const nick = res.userInfo?.nickName || '';
-      const avatar = res.userInfo?.avatarUrl || '';
-      
-      // 写入云端（已有 profile 云函数时）
-      try {
-        const up = await wx.cloud.callFunction({
-          name: 'profile',
-          data: { action: 'upsert', nickName: nick, avatarUrl: avatar }
-        });
-        
-        // 回显：avatarFileID 优先
-        let avatarUrl = avatar;
-        const data = up?.result?.data || {};
-        if (data.avatarFileID) {
-          const r = await wx.cloud.getTempFileURL({ fileList: [data.avatarFileID] });
-          avatarUrl = r.fileList?.[0]?.tempFileURL || avatar;
-        }
-        
-        this.setData({ nickName: nick, avatarUrl });
-        wx.setStorageSync('userProfile', { nickName: nick, avatarUrl });
-        wx.showToast({ title: '已同步', icon: 'success' });
-      } catch (e) {
-        // 云函数不可用时，至少先本地回显
-        console.warn('[MINE] 云函数调用失败:', e);
-        this.setData({ nickName: nick, avatarUrl: avatar });
-        wx.setStorageSync('userProfile', { nickName: nick, avatarUrl: avatar });
-        wx.showToast({ title: '资料已本地更新', icon: 'success' });
-      }
-    } catch (e) {
-      console.warn('[MINE] 用户取消授权:', e);
-      wx.showToast({ title: '授权已取消', icon: 'none' });
-    }
+    this.setData({ nickName:nick, avatarUrl });
+    wx.setStorageSync('userProfile', { nickName:nick, avatarUrl });
+    getApp().globalData.userProfile = { nickName:nick, avatarUrl };
+    wx.showToast({ title:'已同步', icon:'success' });
   },
 
   /**

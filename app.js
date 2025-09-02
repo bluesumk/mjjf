@@ -1,5 +1,7 @@
 // app.js
 // 全局应用实例
+const config = require('./config.js');
+const RequestManager = require('./utils/request.js');
 const authUtils = require('./utils/auth.js');
 const authManager = authUtils.authManager;
 
@@ -24,105 +26,189 @@ App({
     /** 用户认证管理器 */
     authManager: authManager,
     /** 云开发是否可用 */
-    cloudAvailable: false
+    cloudAvailable: false,
+    /** 新增登录态相关字段 */
+    openid: null,
+    user: null,
+    loggedIn: false,
+    launchQuery: {}
   },
   async onLaunch() {
     console.log('小程序启动...');
     
     // 1. 初始化云开发环境
-    this.initCloudEnvironment();
+    await this.initCloudEnvironment();
     
     // 2. 启动时尝试从本地存储读取已有的对局记录
+    this.loadLocalSessions();
+
+    // 3. 水合登录态数据
+    this.hydrateAuthState();
+
+    // 4. 获取启动参数
+    const opts = wx.getLaunchOptionsSync ? wx.getLaunchOptionsSync() : {};
+    this.globalData.launchQuery = (opts && opts.query) || {};
+
+    // 5. 云函数登录获取openid
+    await this.performCloudLogin();
+  },
+
+  /**
+   * 初始化云开发环境
+   */
+  async initCloudEnvironment() {
+    if (!wx.cloud) {
+      console.error('请使用基础库 2.2.3+ 以使用云能力');
+      return false;
+    }
+
     try {
-      const sessions = wx.getStorageSync('sessions');
+      await wx.cloud.init({ 
+        env: wx.cloud.DYNAMIC_CURRENT_ENV, 
+        traceUser: config.cloud.traceUser 
+      });
+      console.log('云开发环境初始化成功');
+      this.globalData.cloudAvailable = true;
+      return true;
+    } catch (e) {
+      console.error('云开发环境初始化失败:', e);
+      this.globalData.cloudAvailable = false;
+      return false;
+    }
+  },
+
+  /**
+   * 加载本地存储的会话数据
+   */
+  loadLocalSessions() {
+    try {
+      const sessions = wx.getStorageSync(config.storageKeys.sessions);
       if (sessions) {
         this.globalData.sessions = sessions;
       }
     } catch (e) {
       console.warn('读取本地会话失败', e);
     }
+  },
 
-    // 3. 执行微信登录流程（仅做基础检查，具体授权在授权页面处理）
+  /**
+   * 水合登录态数据
+   */
+  hydrateAuthState() {
     try {
-      const loginResult = await authManager.login();
-      console.log('登录检查结果:', loginResult);
-      
-      if (loginResult.success) {
-        console.log('用户已登录:', loginResult.userInfo.nickName);
-      } else if (loginResult.needAuth) {
-        console.log('用户需要授权，将在授权页面处理');
-      }
-    } catch (error) {
-      console.error('登录检查异常:', error);
+      const user = wx.getStorageSync(config.storageKeys.user) || null;
+      const openid = wx.getStorageSync(config.storageKeys.openid) || null;
+      this.globalData.user = user;
+      this.globalData.openid = openid;
+      this.globalData.loggedIn = !!openid;
+    } catch (e) {
+      console.warn('水合登录态失败', e);
     }
   },
 
   /**
-   * 初始化云开发环境
+   * 执行云函数登录
    */
-  initCloudEnvironment() {
+  async performCloudLogin() {
+    if (!this.globalData.cloudAvailable) {
+      console.warn('云开发不可用，跳过云登录');
+      return;
+    }
+
     try {
-      if (!wx.cloud) {
-        console.warn('当前环境不支持云开发，仅使用文本邀请码');
-        return;
+      const res = await wx.cloud.callFunction({ 
+        name: config.cloudFunctions.login 
+      });
+      
+      if (res && res.result && res.result.openid) {
+        this._commitAuth(res.result.openid);
+        console.log('云函数登录成功:', res.result.openid);
       }
-
-      // 初始化云开发
-      wx.cloud.init({
-        env: 'cloudbase-3go6h0x7b3bc5b04',
-        traceUser: true
-      });
-      
-      console.log('[INIT] cloud inited with env=cloudbase-3go6h0x7b3bc5b04');
-      
-      console.log('云开发环境初始化成功');
-      
-      // 测试云开发连接
-      this.testCloudConnection();
-      
     } catch (error) {
-      console.error('云开发环境初始化失败:', error);
-      console.log('将仅使用文本邀请码分享');
+      console.warn('[auth] 云函数登录失败', error);
     }
   },
 
-  /**
-   * 测试云开发连接
-   */
-  testCloudConnection() {
-    try {
-      wx.cloud.callFunction({
-        name: 'ping',
-        data: { test: 'connection' },
-        success: (res) => {
-          console.log('云开发连接测试成功:', res);
-          this.globalData.cloudAvailable = true;
-        },
-        fail: (error) => {
-          console.log('云开发连接测试失败:', error.errMsg);
-          this.globalData.cloudAvailable = false;
-          
-          if (error.errMsg && error.errMsg.includes('Cloud API isn\'t enabled')) {
-            console.log('云开发未正确配置，仅使用文本邀请码');
-          } else if (error.errMsg && error.errMsg.includes('cloud function')) {
-            console.log('测试云函数不存在，但云开发环境可用');
-            this.globalData.cloudAvailable = true;
-          }
-        }
-      });
-    } catch (error) {
-      console.error('云开发连接测试异常:', error);
-      this.globalData.cloudAvailable = false;
-    }
-  },
+
   /**
    * 保存会话数据到本地存储
    */
   saveSessions() {
     try {
-      wx.setStorageSync('sessions', this.globalData.sessions);
+      wx.setStorageSync(config.storageKeys.sessions, this.globalData.sessions);
     } catch (e) {
       console.error('保存本地会话失败', e);
+    }
+  },
+
+  /**
+   * 确保登录方法
+   */
+  ensureLogin() {
+    if (this.globalData.loggedIn && this.globalData.openid) {
+      return Promise.resolve(this.globalData);
+    }
+    
+    return wx.cloud.callFunction({ 
+      name: config.cloudFunctions.login 
+    }).then(res => {
+      const openid = (res && res.result && res.result.openid) || null;
+      if (!openid) return Promise.reject(new Error('NO_OPENID'));
+      this._commitAuth(openid);
+      return this.globalData;
+    });
+  },
+
+  /**
+   * 提交认证信息
+   */
+  _commitAuth(openid, user) {
+    if (openid) { 
+      this.globalData.openid = openid; 
+      this.globalData.loggedIn = true; 
+      try { wx.setStorageSync(config.storageKeys.openid, openid); } catch (e) {} 
+    }
+    if (user) { 
+      this.globalData.user = user; 
+      try { wx.setStorageSync(config.storageKeys.user, user); } catch (e) {} 
+    }
+  },
+
+  /**
+   * 设置用户信息
+   */
+  setUser(nextUser) {
+    this.globalData.user = nextUser;
+    try { wx.setStorageSync(config.storageKeys.user, nextUser); } catch (e) {}
+  },
+
+  /**
+   * 获取用户信息并保存到云数据库（优化版）
+   */
+  async getUserProfileAndSave() {
+    try {
+      // 确保已登录获取openid
+      await this.ensureLogin();
+      
+      // 获取用户授权信息
+      const profileRes = await RequestManager.getUserProfile('用于显示头像与昵称');
+      const userInfo = profileRes.userInfo;
+      
+      // 调用云函数保存用户信息
+      await RequestManager.callCloudFunction(
+        config.cloudFunctions.updateUser,
+        { userInfo },
+        { loadingTitle: '同步用户信息中...' }
+      );
+
+      // 更新本地用户信息
+      const updatedUser = Object.assign({}, this.globalData.user || {}, userInfo, { synced: true });
+      this.setUser(updatedUser);
+      
+      return updatedUser;
+    } catch (error) {
+      console.error('[App] 获取用户信息失败:', error);
+      throw error;
     }
   }
 });

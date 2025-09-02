@@ -281,8 +281,50 @@ class AuthManager {
 // 导出单例实例
 const authManager = new AuthManager();
 
+// 新增：统一云登录函数
+const config = require('../config.js');
+const app = getApp();
+const USE_REST_LOGIN = false; // 若你确有后端换 token，手动切 true 并补上 request 逻辑
+
+/**
+ * 统一登录方法（优化版）
+ */
+async function login() {
+  if (!USE_REST_LOGIN) {
+    try {
+      const globalData = await app.ensureLogin();
+      return { 
+        success: true, 
+        openid: globalData.openid, 
+        fromCache: !!wx.getStorageSync(config.storageKeys.openid) 
+      };
+    } catch (error) {
+      console.error('[auth] 登录失败:', error);
+      return { success: false, error: error.message };
+    }
+  }
+  
+  // REST 登录占位
+  throw new Error('REST_LOGIN_NOT_CONFIGURED');
+}
+
+/**
+ * 同步用户资料（优化版）
+ */
+async function syncUserProfile() {
+  try {
+    const updatedUser = await app.getUserProfileAndSave();
+    return updatedUser;
+  } catch (error) {
+    console.error('[auth] 同步用户资料失败:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   authManager,
   AUTH_STORAGE_KEY,
-  USER_INFO_STORAGE_KEY
+  USER_INFO_STORAGE_KEY,
+  login,
+  syncUserProfile
 };

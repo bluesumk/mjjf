@@ -3,6 +3,7 @@
         "pages/index/index",
         "pages/invite/invite",
         "pages/invite/join/index",
+        "pages/room/join",
         "pages/scoring/scoring",
         "pages/records/records",
         "pages/rounds-detail/index",
