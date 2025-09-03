@@ -166,11 +166,11 @@ App({
     if (openid) { 
       this.globalData.openid = openid; 
       this.globalData.loggedIn = true; 
-      try { wx.setStorageSync(config.storageKeys.openid, openid); } catch (e) {} 
+      try { wx.setStorageSync(config.storageKeys.openid, openid); } catch (e) { console.error('[AUTH] 保存openid失败:', e); } 
     }
     if (user) { 
       this.globalData.user = user; 
-      try { wx.setStorageSync(config.storageKeys.user, user); } catch (e) {} 
+      try { wx.setStorageSync(config.storageKeys.user, user); } catch (e) { console.error('[AUTH] 保存用户信息失败:', e); } 
     }
   },
 
@@ -179,7 +179,7 @@ App({
    */
   setUser(nextUser) {
     this.globalData.user = nextUser;
-    try { wx.setStorageSync(config.storageKeys.user, nextUser); } catch (e) {}
+    try { wx.setStorageSync(config.storageKeys.user, nextUser); } catch (e) { console.error('[AUTH] 更新用户信息失败:', e); }
   },
 
   /**

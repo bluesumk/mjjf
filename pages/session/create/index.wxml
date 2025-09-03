@@ -44,7 +44,7 @@
           {{qrGenerating ? '生成中...' : '刷新'}}
         </button>
         <!-- 仅当可分享时渲染按钮；不再使用 disabled -->
-        <button wx:if="{{canShare}}"
+        <button wx:if="{{shareReady}}"
                 id="shareBtn"
                 class="share-btn"
                 open-type="share">分享邀请</button>
@@ -86,7 +86,7 @@
   </view>
 
   <!-- 调试用：无任何父级拦截，固定定位在右下角；上线前可删除 -->
-  <button wx:if="{{canShare}}"
+  <button wx:if="{{shareReady}}"
           class="share-debug"
           open-type="share">测试分享</button>
 </view>

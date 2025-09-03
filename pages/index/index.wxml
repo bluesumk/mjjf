@@ -12,6 +12,13 @@
       <view class="user-info">
         <text class="nickname title-medium">{{nickname}}</text>
         <text class="welcome-text text-secondary">欢迎来到麻将记分</text>
+        <!-- 授权按钮 -->
+        <button wx:if="{{!avatarUrl || nickname === '弓长'}}" 
+                class="auth-btn" 
+                bindtap="onAuthorizeTap"
+                size="mini">
+          获取微信头像昵称
+        </button>
       </view>
     </view>
     <view class="header-decoration">

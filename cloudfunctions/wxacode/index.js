@@ -16,8 +16,9 @@ exports.main = async (event = {}) => {
     storage = true
   } = event;
 
-  // 仅允许 release | trial，其他（含 develop）一律改为 trial
-  const envVersion = (requestedEnvVersion === 'release') ? 'release' : 'trial';
+  // 动态设定环境版本，支持正式部署
+  const envVersion = (requestedEnvVersion === 'release') ? 'release' : 
+                     (requestedEnvVersion === 'develop') ? 'develop' : 'trial';
   console.log('[wxacode] envVersion =', envVersion, 'page =', page, 'scene =', scene);
 
   // —— 放大入参日志 —— //

@@ -40,7 +40,7 @@
         <button size="mini" class="refresh-btn" bindtap="refreshQRCode" disabled="{{qrGenerating}}">
           {{qrGenerating ? '生成中...' : '重试'}}
         </button>
-        <button size="mini" class="invite-btn" bindtap="shareInvite" disabled="{{!inviteCode}}">分享邀请</button>
+        <button size="mini"open-type="share" class="invite-btn" bindtap="shareInvite" disabled="{{!inviteCode}}">分享邀请</button>
       </view>
     </view>
     

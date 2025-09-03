@@ -1,5 +1,6 @@
 // pages/scoring/scoring.js
 const app = getApp();
+const config = require('../../config.js');
 
 Page({
   data: {
@@ -391,5 +392,42 @@ Page({
    */
   goHome() {
     wx.reLaunch({ url: '/pages/index/index' });
+  },
+
+  /**
+   * 页面显示时开启分享
+   */
+  onShow() {
+    // 开启分享功能
+    wx.showShareMenu({ 
+      withShareTicket: true, 
+      menus: config.share.menus 
+    });
+  },
+
+  /**
+   * 分享当前牌局
+   */
+  onShareAppMessage() {
+    const { sessionId } = this.data;
+    
+    if (!sessionId) {
+      return {
+        title: config.share.defaultTitle,
+        path: config.pages.index,
+        imageUrl: config.share.defaultImageUrl
+      };
+    }
+
+    // 获取当前会话的邀请token
+    const sessions = app.globalData.sessions || [];
+    const currentSession = sessions.find(s => s.id === sessionId);
+    const inviteToken = currentSession?.inviteToken || sessionId;
+
+    return {
+      title: `一起来玩麻将计分吧！房间号：${inviteToken.toString().toUpperCase()}`,
+      path: `${config.pages.sessionJoin}?sid=${encodeURIComponent(sessionId)}&token=${encodeURIComponent(inviteToken)}`,
+      imageUrl: config.share.defaultImageUrl
+    };
   }
 });

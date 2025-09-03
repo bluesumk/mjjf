@@ -15,7 +15,6 @@ const config = {
   cloudFunctions: {
     login: 'login',
     updateUser: 'updateuser',  // 用户修改后的名称
-    joinRoom: 'joinroom',      // 用户修改后的名称
     profile: 'profile',
     session: 'session',
     wxacode: 'wxacode'
@@ -24,7 +23,6 @@ const config = {
   // 数据库集合名称
   collections: {
     users: 'users',
-    rooms: 'rooms',
     sessions: 'sessions'
   },
 
@@ -34,7 +32,7 @@ const config = {
     mine: '/pages/mine/mine',
     records: '/pages/records/records',
     scoring: '/pages/scoring/scoring',
-    roomJoin: '/pages/room/join',
+    sessionJoin: '/pages/invite/join/index', // 统一使用会话加入页面
     sessionCreate: '/pages/session/create/index',
     invite: '/pages/invite/invite'
   },
@@ -46,9 +44,9 @@ const config = {
     menus: ['shareAppMessage', 'shareTimeline']
   },
 
-  // 房间配置
-  room: {
-    maxSeats: 4,
+  // 会话配置
+  session: {
+    maxMembers: 4,
     defaultStatus: 'open'
   },
 

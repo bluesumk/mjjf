@@ -64,32 +64,45 @@ Page({
   },
 
   /**
-   * 显示授权弹窗
+   * 用户点击授权按钮（推荐方式）
    */
-  showAuthModal() {
-    wx.showModal({
-      title: '授权提示',
-      content: '为了提供更好的服务，需要获取您的头像和昵称用于个性化显示',
-      confirmText: '授权',
-      cancelText: '暂不',
-      success: async (res) => {
-        if (res.confirm) {
-          // 用户同意授权
-          await this.performAuth();
+  async onAuthorizeTap() {
+    try {
+      const authManager = app.globalData.authManager;
+      const authResult = await authManager.requestUserAuth();
+      
+      if (authResult.success) {
+        if (authResult.isDefault) {
+          wx.showToast({ 
+            title: '已使用默认身份', 
+            icon: 'none',
+            duration: 2000
+          });
         } else {
-          // 用户拒绝授权，使用默认身份
-          console.log('用户拒绝授权，使用默认身份');
-          this.useDefaultUser();
+          wx.showToast({ 
+            title: '授权成功', 
+            icon: 'success',
+            duration: 1500
+          });
         }
-        // 无论如何都加载数据
-        this.loadData();
-      },
-      fail: () => {
-        // 弹窗失败，使用默认流程
-        this.useDefaultUser();
+        // 重新加载数据以更新UI
         this.loadData();
       }
-    });
+    } catch (error) {
+      console.error('授权失败:', error);
+      wx.showToast({ 
+        title: '授权失败，请重试', 
+        icon: 'none' 
+      });
+    }
+  },
+
+  /**
+   * 显示授权弹窗（保留兼容，但建议改为按钮点击）
+   */
+  showAuthModal() {
+    // 推荐：直接调用授权，不使用 showModal
+    this.onAuthorizeTap();
   },
 
   /**
@@ -358,12 +371,12 @@ Page({
   },
 
   /**
-   * 分享功能（优化版）
+   * 分享功能（统一会话模式）
    */
   onShareAppMessage() {
-    const { roomId } = this.data;
+    const { sessionId, inviteToken } = this.data;
     
-    if (!roomId) {
+    if (!sessionId || !inviteToken) {
       return { 
         title: config.share.defaultTitle, 
         path: config.pages.index,
@@ -372,8 +385,8 @@ Page({
     }
     
     return {
-      title: `邀请你加入麻将局（房间 ${roomId}）`,
-      path: `${config.pages.roomJoin}?meetingId=${encodeURIComponent(roomId)}`,
+      title: `邀请你加入麻将局（房间 ${inviteToken.toUpperCase()}）`,
+      path: `${config.pages.sessionJoin}?sid=${encodeURIComponent(sessionId)}&token=${encodeURIComponent(inviteToken)}`,
       imageUrl: config.share.defaultImageUrl
     };
   }

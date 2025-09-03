@@ -24,6 +24,7 @@ exports.main = async (event, context) => {
       token: String(token),
       ownerOpenId: OPENID,
       status: 'open',
+      members: [OPENID], // 创建者自动加入参与者列表
       meta: meta || {},
       updatedAt: now(),
       createdAt: now()
@@ -51,10 +52,39 @@ exports.main = async (event, context) => {
     return { ok:true, session:{ sid:doc.sid, status:doc.status, ownerOpenId:doc.ownerOpenId } };
   }
 
+  if (action === 'join') {
+    const doc = await getDoc(sid);
+    if (!doc) return { ok:false, error:{code:'NOT_FOUND', msg:'牌局不存在或已结束'} };
+    if (doc.status !== 'open') return { ok:false, error:{code:'ENDED', msg:'牌局已结束，无法加入'} };
+    if (String(doc.token) !== String(token)) return { ok:false, error:{code:'TOKEN_MISMATCH', msg:'邀请码不正确'} };
+    
+    // 检查是否已经加入
+    const members = doc.members || [];
+    if (members.includes(OPENID)) {
+      return { ok:true, message:'已在牌局中', sessionId: sid };
+    }
+    
+    // 检查人数限制（使用配置）
+    const MAX_MEMBERS = 4; // 可以从环境变量或配置获取
+    if (members.length >= MAX_MEMBERS) {
+      return { ok:false, error:{code:'FULL', msg:'牌局人数已满'} };
+    }
+    
+    // 加入牌局
+    await coll.doc(String(sid)).update({ 
+      data: { 
+        members: [...members, OPENID], 
+        updatedAt: now() 
+      } 
+    });
+    
+    return { ok:true, message:'成功加入牌局', sessionId: sid };
+  }
+
   if (action === 'end') {
     const doc = await getDoc(sid);
     if (!doc) return { ok:false, error:{code:'NOT_FOUND', msg:'session not found'} };
-    if (doc.ownerOpenId !== OPENID) return { ok:false, error:{code:'FORBIDDEN', msg:'only owner can end'} };
+    if (doc.ownerOpenId !== OPENID) return { ok:false, error:{code:'FORBIDDEN', msg:'仅房主可结束'} };
     await coll.doc(String(sid)).update({ data:{ status:'ended', updatedAt:now() } });
     return { ok:true };
   }

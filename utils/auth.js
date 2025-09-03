@@ -16,35 +16,38 @@ class AuthManager {
   }
 
   /**
-   * 执行微信登录流程（首页调用）
+   * 执行微信登录流程（精简版）
    */
   async login() {
     try {
       console.log('开始微信登录流程...');
       
-      // 1. 获取微信登录凭证
-      const loginResult = await this.wxLogin();
-      if (!loginResult.success) {
-        throw new Error('微信登录失败: ' + loginResult.error);
+      // 1. 先调用 app.ensureLogin() 获取 openid
+      const app = getApp();
+      const globalData = await app.ensureLogin();
+      
+      if (globalData && globalData.openid) {
+        console.log('云函数登录成功，openid:', globalData.openid);
+        this.isLoggedIn = true;
       }
 
       // 2. 检查是否已有用户信息
       const existingUserInfo = this.getUserInfo();
       if (existingUserInfo && existingUserInfo.nickName && !existingUserInfo.isDefault) {
         console.log('发现已存储的真实用户信息，直接使用');
-        this.isLoggedIn = true;
         return {
           success: true,
           userInfo: existingUserInfo,
+          openid: globalData.openid,
           fromCache: true
         };
       }
 
-      // 3. 首次用户或需要重新授权，返回需要授权状态
+      // 3. 有 openid 但无用户信息，返回需要授权状态
       return {
         success: false,
         needAuth: true,
-        code: loginResult.code,
+        openid: globalData.openid,
         message: '需要用户授权才能使用小程序'
       };
 
@@ -60,17 +63,35 @@ class AuthManager {
   }
 
   /**
-   * 请求用户授权（标准微信授权流程）
+   * 请求用户授权（标准微信授权流程 + 云数据库同步）
    */
   async requestUserAuth() {
     try {
       console.log('开始请求用户授权...');
+      
+      // 确保有 openid
+      const app = getApp();
+      await app.ensureLogin();
       
       // 使用微信标准授权API
       const userInfo = await this.getUserProfileStandard();
       if (userInfo.success) {
         // 标记为真实用户信息
         userInfo.userInfo.isDefault = false;
+        
+        // 同步到云数据库
+        try {
+          const config = require('../config.js');
+          await wx.cloud.callFunction({
+            name: config.cloudFunctions.updateUser,
+            data: { userInfo: userInfo.userInfo }
+          });
+          console.log('用户信息已同步到云数据库');
+        } catch (error) {
+          console.warn('同步用户信息到云数据库失败:', error);
+        }
+        
+        // 保存到本地
         this.saveUserInfo(userInfo.userInfo);
         this.isLoggedIn = true;
         
@@ -133,7 +154,7 @@ class AuthManager {
   }
 
   /**
-   * 获取用户信息（标准微信授权）
+   * 获取用户信息（标准微信授权 + 低版本兼容）
    */
   getUserProfileStandard() {
     return new Promise((resolve) => {
@@ -149,10 +170,27 @@ class AuthManager {
             resolve({ success: false, error: error.errMsg || '获取用户信息失败' });
           }
         });
+      } else if (wx.getUserInfo) {
+        // 低版本兼容：使用 getUserInfo（已废弃但可作为降级方案）
+        console.warn('当前版本不支持getUserProfile，使用降级方案');
+        wx.getUserInfo({
+          success: (res) => {
+            console.log('降级获取用户信息成功:', res.userInfo);
+            resolve({ success: true, userInfo: res.userInfo, isLegacy: true });
+          },
+          fail: (error) => {
+            console.log('降级获取用户信息失败:', error);
+            resolve({ success: false, error: error.errMsg || '获取用户信息失败' });
+          }
+        });
       } else {
-        // 降级方案
-        console.log('当前版本不支持getUserProfile');
-        resolve({ success: false, error: '当前版本不支持用户信息获取' });
+        // 完全不支持的版本
+        console.error('当前微信版本过低，不支持用户信息获取');
+        resolve({ 
+          success: false, 
+          error: '当前微信版本过低，请更新微信后重试',
+          isVersionTooLow: true 
+        });
       }
     });
   }
@@ -281,50 +319,9 @@ class AuthManager {
 // 导出单例实例
 const authManager = new AuthManager();
 
-// 新增：统一云登录函数
-const config = require('../config.js');
-const app = getApp();
-const USE_REST_LOGIN = false; // 若你确有后端换 token，手动切 true 并补上 request 逻辑
-
-/**
- * 统一登录方法（优化版）
- */
-async function login() {
-  if (!USE_REST_LOGIN) {
-    try {
-      const globalData = await app.ensureLogin();
-      return { 
-        success: true, 
-        openid: globalData.openid, 
-        fromCache: !!wx.getStorageSync(config.storageKeys.openid) 
-      };
-    } catch (error) {
-      console.error('[auth] 登录失败:', error);
-      return { success: false, error: error.message };
-    }
-  }
-  
-  // REST 登录占位
-  throw new Error('REST_LOGIN_NOT_CONFIGURED');
-}
-
-/**
- * 同步用户资料（优化版）
- */
-async function syncUserProfile() {
-  try {
-    const updatedUser = await app.getUserProfileAndSave();
-    return updatedUser;
-  } catch (error) {
-    console.error('[auth] 同步用户资料失败:', error);
-    throw error;
-  }
-}
-
+// 导出单例实例（删除重复函数，只保留 authManager）
 module.exports = {
   authManager,
   AUTH_STORAGE_KEY,
-  USER_INFO_STORAGE_KEY,
-  login,
-  syncUserProfile
+  USER_INFO_STORAGE_KEY
 };
