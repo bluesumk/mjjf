@@ -4,10 +4,8 @@
   "description": "微信麻将计分小程序",
   "main": "app.js",
   "scripts": {
-    "compress": "node scripts/compress.js",
-    "restore": "node scripts/compress.js --restore",
-    "build": "npm run compress",
-    "dev": "npm run restore"
+    "build": "echo 'use WeChat minify or CI terser; no local regex compress'",
+    "dev": "echo 'dev mode; no compress'"
   },
   "keywords": [
     "miniprogram",

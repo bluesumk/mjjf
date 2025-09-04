@@ -88,6 +88,11 @@ App({
       }
     } catch (e) {
       console.warn('读取本地会话失败', e);
+      wx.reportAnalytics('storage_fail', {
+        action: 'getStorageSync',
+        key: 'sessions',
+        error: e.message || 'unknown'
+      });
     }
   },
 
@@ -103,6 +108,11 @@ App({
       this.globalData.loggedIn = !!openid;
     } catch (e) {
       console.warn('水合登录态失败', e);
+      wx.reportAnalytics('storage_fail', {
+        action: 'getStorageSync',
+        key: 'auth_state',
+        error: e.message || 'unknown'
+      });
     }
   },
 
@@ -138,6 +148,17 @@ App({
       wx.setStorageSync(config.storageKeys.sessions, this.globalData.sessions);
     } catch (e) {
       console.error('保存本地会话失败', e);
+      wx.reportAnalytics('storage_fail', {
+        action: 'setStorageSync',
+        key: 'sessions',
+        error: e.message || 'unknown'
+      });
+      // 关键操作失败时提示用户
+      wx.showToast({ 
+        title: '保存失败，请重试', 
+        icon: 'none',
+        duration: 2000
+      });
     }
   },
 
@@ -166,11 +187,17 @@ App({
     if (openid) { 
       this.globalData.openid = openid; 
       this.globalData.loggedIn = true; 
-      try { wx.setStorageSync(config.storageKeys.openid, openid); } catch (e) { console.error('[AUTH] 保存openid失败:', e); } 
+      try { wx.setStorageSync(config.storageKeys.openid, openid); } catch (e) { 
+        console.error('[AUTH] 保存openid失败:', e); 
+        wx.reportAnalytics('storage_fail', { action: 'setStorageSync', key: 'openid', error: e.message || 'unknown' });
+      } 
     }
     if (user) { 
       this.globalData.user = user; 
-      try { wx.setStorageSync(config.storageKeys.user, user); } catch (e) { console.error('[AUTH] 保存用户信息失败:', e); } 
+      try { wx.setStorageSync(config.storageKeys.user, user); } catch (e) { 
+        console.error('[AUTH] 保存用户信息失败:', e); 
+        wx.reportAnalytics('storage_fail', { action: 'setStorageSync', key: 'user', error: e.message || 'unknown' });
+      } 
     }
   },
 
@@ -179,7 +206,10 @@ App({
    */
   setUser(nextUser) {
     this.globalData.user = nextUser;
-    try { wx.setStorageSync(config.storageKeys.user, nextUser); } catch (e) { console.error('[AUTH] 更新用户信息失败:', e); }
+    try { wx.setStorageSync(config.storageKeys.user, nextUser); } catch (e) { 
+      console.error('[AUTH] 更新用户信息失败:', e); 
+      wx.reportAnalytics('storage_fail', { action: 'setStorageSync', key: 'user_update', error: e.message || 'unknown' });
+    }
   },
 
   /**

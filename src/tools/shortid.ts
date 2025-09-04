@@ -30,9 +30,19 @@ export const buildScene = (sid: string, token: string): string => {
  */
 export const parseScene = (scene: string): { s: string; t: string } | null => {
   try {
-    const params = new URLSearchParams(scene);
-    const s = params.get('s');
-    const t = params.get('t');
+    // 手写解析，兼容低版本基础库
+    const res: Record<string, string> = {};
+    scene.split('&').forEach(kv => {
+      const i = kv.indexOf('=');
+      if (i > 0) {
+        const k = kv.slice(0, i);
+        const v = kv.slice(i + 1);
+        res[k] = v;
+      }
+    });
+    
+    const s = res.s;
+    const t = res.t;
     
     if (!s || !t) return null;
     

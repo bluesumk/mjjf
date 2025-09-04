@@ -8,7 +8,7 @@
  * @param {string|number} input - 输入字符串或数字
  * @returns {string} 6位base36短码
  */
-export const toBase36_6 = (input) => {
+const toBase36_6 = (input) => {
   const s = String(input);
   let h = 2166136261 >>> 0;           // FNV-1a 起点
   for (let i = 0; i < s.length; i++) {
@@ -24,7 +24,7 @@ export const toBase36_6 = (input) => {
  * @param {string} token - 邀请令牌
  * @returns {string} 6位邀请码
  */
-export const generateInviteCode = (sid, token) => {
+const generateInviteCode = (sid, token) => {
   try {
     if (!sid || !token) {
       console.warn('generateInviteCode: 参数缺失', { sid, token });
@@ -46,7 +46,7 @@ export const generateInviteCode = (sid, token) => {
  * @param {string} token - 邀请令牌
  * @returns {string} scene参数
  */
-export const buildScene = (sid, token) => {
+const buildScene = (sid, token) => {
   try {
     if (!sid || !token) {
       console.warn('buildScene: 参数缺失', { sid, token });
@@ -67,13 +67,23 @@ export const buildScene = (sid, token) => {
  * @param {string} scene - scene参数字符串
  * @returns {Object|null} 解析结果 { s: string, t: string }
  */
-export const parseScene = (scene) => {
+const parseScene = (scene) => {
   try {
     if (!scene) return null;
     
-    const params = new URLSearchParams(scene);
-    const s = params.get('s');
-    const t = params.get('t');
+    // 手写解析，兼容低版本基础库
+    const res = {};
+    scene.split('&').forEach(kv => {
+      const i = kv.indexOf('=');
+      if (i > 0) {
+        const k = kv.slice(0, i);
+        const v = kv.slice(i + 1);
+        res[k] = v;
+      }
+    });
+    
+    const s = res.s;
+    const t = res.t;
     
     if (!s || !t) return null;
     

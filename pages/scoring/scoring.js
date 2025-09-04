@@ -36,9 +36,16 @@ Page({
   /**
    * 页面加载
    */
-  onLoad() {
-    const sessionId = app.globalData.currentSessionId;
+  onLoad(options) {
+    // 优先使用URL参数中的sessionId，然后使用全局的currentSessionId
+    const sessionId = options.sessionId || app.globalData.currentSessionId;
     this.setData({ sessionId });
+    
+    // 如果有sessionId参数，更新全局currentSessionId
+    if (options.sessionId) {
+      app.globalData.currentSessionId = options.sessionId;
+    }
+    
     const session = app.globalData.sessions.find(s => s.id === sessionId);
     if (session) {
       let participants = session.participants.slice();

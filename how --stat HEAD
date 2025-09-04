@@ -1,0 +1,5 @@
+[33md45b98c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfix/revert-ui-rollback[m[33m)[m fix: 修复关键bug和代码规范问题
+[33m7748843[m[33m ([m[1;31morigin/fix/revert-ui-rollback[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat(app): enhance user authentication and session management
+[33m68e09c3[m fix(critical): 修复发布阻断项 A2+D2
+[33m8546170[m feat(ui): 优化添加参与者弹窗样式，解决真机溢出问题
+[33m4be92a6[m feat(mine): 一键同步微信资料（getUserProfile→profile.upsert 落库回显），缺资料时出现

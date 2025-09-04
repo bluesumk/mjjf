@@ -3,13 +3,13 @@
 ## 云开发环境配置
 
 ### 环境ID
-- **云环境ID**: `cloudbase-3go6h0x7b3bc5b04`
+- **云环境ID**: `cloudbase-xxxxxxxxxxxxxxxx`（请使用你自己的云环境ID）
 - **配置位置**: `app.js` 中的 `wx.cloud.init()`
 
 ### 开发者工具配置步骤
 1. 打开微信开发者工具
 2. 点击右上角"详情" → "本地设置"
-3. 在"云开发环境"中选择 `cloudbase-3go6h0x7b3bc5b04`
+3. 在"云开发环境"中选择你的云环境ID
 4. 确保云函数已部署：
    - 右键 `cloudfunctions/wxacode` → "上传并部署：云端安装依赖"
    - 右键 `cloudfunctions/test` → "上传并部署：云端安装依赖"
