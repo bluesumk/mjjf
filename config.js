@@ -52,7 +52,6 @@ const config = {
 
   // 存储键名配置
   storageKeys: {
-    user: 'user',
     openid: 'openid',
     sessions: 'sessions',
     userProfile: 'userProfile',

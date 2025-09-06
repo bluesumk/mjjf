@@ -63,9 +63,11 @@ App({
     }
 
     try {
-      await wx.cloud.init({ 
-        env: wx.cloud.DYNAMIC_CURRENT_ENV, 
-        traceUser: config.cloud.traceUser 
+      const { env } = config.cloud || {};
+      await wx.cloud.init({
+        // 若配置 env 则使用；否则回退 DYNAMIC_CURRENT_ENV
+        env: env === 'DYNAMIC_CURRENT_ENV' ? wx.cloud.DYNAMIC_CURRENT_ENV : env,
+        traceUser: config.cloud.traceUser
       });
       console.log('云开发环境初始化成功');
       this.globalData.cloudAvailable = true;
@@ -101,11 +103,16 @@ App({
    */
   hydrateAuthState() {
     try {
-      const user = wx.getStorageSync(config.storageKeys.user) || null;
+      const userInfo = wx.getStorageSync('userInfo') || null;
       const openid = wx.getStorageSync(config.storageKeys.openid) || null;
-      this.globalData.user = user;
+      
+      // 写入 globalData.userInfo
+      this.globalData.userInfo = userInfo;
+      this.globalData.user = userInfo; // 保持兼容性
       this.globalData.openid = openid;
       this.globalData.loggedIn = !!openid;
+      
+      console.log('[APP] 水合用户信息:', userInfo);
     } catch (e) {
       console.warn('水合登录态失败', e);
       wx.reportAnalytics('storage_fail', {

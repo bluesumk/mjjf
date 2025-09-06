@@ -17,7 +17,7 @@
     <text class="recent-title">最近记录</text>
     <picker mode="multiSelector" range="{{timePickerRange}}" value="{{timePickerValue}}" bindchange="onTimeChange">
       <view class="month-select">
-        <text>选择月份</text>
+        <text>{{pickerLabel}}</text>
         <image class="arrow-icon" src="/assets/arrow-down.png"></image>
       </view>
     </picker>

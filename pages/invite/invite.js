@@ -90,16 +90,27 @@ Page({
 
       // 立刻写入云端数据库
       try {
-        await wx.cloud.callFunction({
-          name: 'session',
+        console.log('[INVITE] 准备写入云端 - sid:', sessionId, 'token:', inviteToken);
+        const createRes = await wx.cloud.callFunction({
+          name: 'sessions',
           data: { 
             action: 'create', 
             sid: sessionId, 
-            token: inviteToken, 
+            token: inviteToken,
+            participants: this.data.participants.map(p => p.name),
+            taiSwitch: this.data.taiSwitch,
             meta: { tableMode: this.data?.tableMode } 
           }
         });
-        console.log('[INVITE] 会话已写入云端');
+        console.log('[INVITE] 会话写入云端结果:', createRes);
+        if (createRes.result && createRes.result.ok) {
+          console.log('[INVITE] 会话已成功写入云端');
+          // 创建成功后才设置 shareReady
+          this.setData({ shareReady: true });
+        } else {
+          console.error('[INVITE] 会话写入云端失败:', createRes.result);
+          console.error('[INVITE] 详细错误信息:', JSON.stringify(createRes.result.error, null, 2));
+        }
       } catch (dbError) {
         console.error('[INVITE] 写入云端失败:', dbError);
       }

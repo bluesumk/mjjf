@@ -88,31 +88,49 @@ Page({
    * 页面显示时刷新数据
    */
   async onShow() { 
-    this.hydrate(); 
-    try {
-      const { result } = await wx.cloud.callFunction({ 
-        name: 'profile', 
-        data: { action: 'get' } 
-      });
-      const prof = result?.data || {};
-      let avatarUrl = prof.avatarUrl || '';
-      if (prof.avatarFileID) {
-        const { fileList } = await wx.cloud.getTempFileURL({ fileList: [prof.avatarFileID] });
-        avatarUrl = fileList?.[0]?.tempFileURL || avatarUrl;
+    console.log('[MINE] onShow 开始');
+    const app = getApp();
+    
+    // 优先读取 globalData.userInfo
+    let userInfo = app.globalData.userInfo;
+    
+    // 如果为空，从本地缓存恢复
+    if (!userInfo) {
+      userInfo = wx.getStorageSync('userInfo') || null;
+      if (userInfo) {
+        app.globalData.userInfo = userInfo;
+        console.log('[MINE] 从缓存恢复用户信息:', userInfo);
       }
-      this.setData({ avatarUrl, nickName: prof.nickName || '', __profileReady: true });
-      wx.setStorageSync('userProfile', { avatarUrl, nickName: prof.nickName || '' });
-      getApp().globalData.userProfile = { avatarUrl, nickName: prof.nickName || '' };
-    } catch(e) {
-      const cache = wx.getStorageSync('userProfile') || {};
-      this.setData({ avatarUrl: cache.avatarUrl || '', nickName: cache.nickName || '', __profileReady: true });
     }
+    
+    // 设置页面显示数据
+    const displayNickName = userInfo?.nickName || '微信用户';
+    const displayAvatarUrl = userInfo?.avatarUrl || '/assets/avatar-placeholder.png';
+    
+    this.setData({
+      user: userInfo,
+      nickName: displayNickName,
+      avatarUrl: displayAvatarUrl,
+      __profileReady: true
+    });
+    
+    console.log('[MINE] 页面数据更新完成:', {
+      nickName: displayNickName,
+      avatarUrl: displayAvatarUrl
+    });
+    
     this.refreshData();
   },
 
   hydrate() {
-    const u = (function(){ try { return wx.getStorageSync('user') || null; } catch (e) { return null; } })();
-    this.setData({ user: u });
+    // 从统一的 userProfile 缓存读取用户资料
+    const prof = wx.getStorageSync(config.storageKeys.userProfile) || null;
+    this.setData({
+      user: prof,
+      nickName: prof?.nickName || '',
+      avatarUrl: prof?.avatarUrl || '',
+      __profileReady: !!prof
+    });
   },
   
   /**
@@ -413,7 +431,33 @@ Page({
   async handleSync() {
     try {
       const updatedUser = await app.getUserProfileAndSave();
-      this.setData({ user: updatedUser });
+      
+      // 关键修复：提取并更新 nickName/avatarUrl 字段
+      const nickName = updatedUser.nickName || '';
+      const avatarUrl = updatedUser.avatarUrl || '';
+      
+      // 更新页面状态，确保按钮逻辑正确
+      this.setData({ 
+        user: updatedUser,
+        nickName: nickName,
+        avatarUrl: avatarUrl,
+        __profileReady: true
+      });
+      
+      // 同步到本地存储和全局数据
+      wx.setStorageSync(config.storageKeys.userProfile, {
+        nickName: nickName,
+        avatarUrl: avatarUrl,
+        ...updatedUser
+      });
+      
+      // 更新全局数据
+      app.globalData.userProfile = {
+        nickName: nickName,
+        avatarUrl: avatarUrl,
+        ...updatedUser
+      };
+      
       wx.showToast({ 
         title: '同步成功', 
         icon: 'success',
@@ -421,14 +465,12 @@ Page({
       });
     } catch (error) {
       console.warn('[sync] 同步失败:', error);
-      
       let errorMsg = '同步失败';
       if (error.errMsg && error.errMsg.includes('auth deny')) {
         errorMsg = '用户拒绝授权';
       } else if (error.message && error.message.includes('getUserProfile')) {
         errorMsg = '微信版本过低';
       }
-      
       wx.showToast({ 
         icon: 'none', 
         title: errorMsg,
@@ -462,7 +504,30 @@ Page({
   },
 
   /**
-   * 进入编辑资料页面
+   * 修改资料（跳转到编辑页面）
+   */
+  editProfile() {
+    console.log('[MINE] 跳转到编辑资料页面');
+    
+    // 确保用户信息已加载到全局数据
+    const app = getApp();
+    const currentUserInfo = app.globalData.userInfo || this.data.user || {};
+    
+    // 更新全局数据，供编辑页面使用
+    app.globalData.userInfo = {
+      nickName: this.data.nickName || currentUserInfo.nickName || '',
+      avatarUrl: this.data.avatarUrl || currentUserInfo.avatarUrl || '',
+      ...currentUserInfo
+    };
+    
+    // 跳转到编辑资料页面
+    wx.navigateTo({ 
+      url: '/pages/profile/edit/index'
+    });
+  },
+
+  /**
+   * 进入编辑资料页面（保留原方法）
    */
   gotoEditProfile() {
     const target = '/pages/profile/edit/index';

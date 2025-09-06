@@ -46,14 +46,10 @@
   line-height: 1; 
 }
 
-.cell-input { 
-  flex: 1; 
-  text-align: right; 
-  font-size: 30rpx; 
-  color: #333; 
-  padding: 10rpx 0; 
-  border: none;
-  background: transparent;
+.cell-value {
+  font-size: 30rpx;
+  color: #333;
+  margin-right: 16rpx;
 }
 
 .cell-input::placeholder { 

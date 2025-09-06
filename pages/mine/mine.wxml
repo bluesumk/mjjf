@@ -2,28 +2,16 @@
 <view class="container mine-container fade-in">
   <!-- Profile Card -->
   <view class="profile-card" style="width: 708rpx; display: flex; box-sizing: border-box; position: relative; left: -20rpx; top: -28rpx">
-    <view class="profile-left" wx:if="{{user}}">
-      <image class="avatar" src="{{user.avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill" />
+    <view class="profile-left">
+      <image class="avatar" src="{{avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill" />
       <view class="meta">
-        <text class="nickname">{{user.nickName || '微信用户'}}</text>
-        <text class="subtitle">麻将计分达人</text>
-      </view>
-    </view>
-    <view class="profile-left" wx:else>
-      <image class="avatar" src="/assets/avatar-placeholder.png" mode="aspectFill" />
-      <view class="meta">
-        <text class="nickname">微信用户</text>
+        <text class="nickname">{{nickName || '点击修改资料'}}</text>
         <text class="subtitle">麻将计分达人</text>
       </view>
     </view>
     
-    <button wx:if="{{__profileReady && (!nickName || !avatarUrl)}}" 
-            class="btn-outline" 
-            bindtap="handleSync"
-            style="width: 199rpx; display: block; box-sizing: border-box; left: 115rpx; top: -5rpx; position: relative">一键同步微信资料</button>
-    <button wx:else 
-            class="btn-outline" 
-            bindtap="gotoEditProfile"
+    <button class="btn-outline" 
+            bindtap="editProfile"
             style="width: 199rpx; display: block; box-sizing: border-box; left: 115rpx; top: -5rpx; position: relative">修改资料</button>
   </view>
 

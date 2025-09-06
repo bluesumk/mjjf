@@ -17,7 +17,9 @@ Page({
     timePickerRange: [[], []],
     timePickerValue: [0, 0],
     // 显示的对局
-    displayedSessions: []
+    displayedSessions: [],
+    // 选择器显示文案
+    pickerLabel: '选择月份'
   },
   /**
    * 页面显示时刷新数据
@@ -60,13 +62,17 @@ Page({
       monthList.indexOf(selectedMonth)
     ];
     
+    // 计算选择器显示文案
+    const pickerLabel = this.calculatePickerLabel(selectedYear, selectedMonth);
+    
     this.setData({ 
       yearList, 
       monthList, 
       selectedYear, 
       selectedMonth,
       timePickerRange,
-      timePickerValue
+      timePickerValue,
+      pickerLabel
     });
     this.filterSessions();
   },
@@ -208,12 +214,31 @@ Page({
     const selectedYear = this.data.yearList[timePickerValue[0]];
     const selectedMonth = this.data.monthList[timePickerValue[1]];
     
+    // 更新选择器显示文案
+    const pickerLabel = this.calculatePickerLabel(selectedYear, selectedMonth);
+    
     this.setData({ 
       selectedYear, 
       selectedMonth, 
-      timePickerValue 
+      timePickerValue,
+      pickerLabel
     });
     this.filterSessions();
+  },
+
+  /**
+   * 计算选择器显示文案
+   */
+  calculatePickerLabel(selectedYear, selectedMonth) {
+    if (selectedYear === '全部' && selectedMonth === '全部') {
+      return '选择月份';
+    } else if (selectedYear === '全部') {
+      return `全部年份 - ${selectedMonth}`;
+    } else if (selectedMonth === '全部') {
+      return `${selectedYear}年 - 全部月份`;
+    } else {
+      return `${selectedYear}年 - ${selectedMonth}`;
+    }
   },
 
   /**

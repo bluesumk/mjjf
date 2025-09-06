@@ -10,14 +10,12 @@
   </view>
 
   <!-- 昵称行 -->
-  <view class="cell">
+  <view class="cell" bindtap="changeNickname" hover-class="cell-hover">
     <text class="cell-label">昵称</text>
-    <input class="cell-input"
-           value="{{nickName}}"
-           placeholder="请输入昵称"
-           maxlength="20"
-           confirm-type="done"
-           bindinput="onNameInput" />
+    <view class="cell-right">
+      <text class="cell-value">{{nickName || '请设置昵称'}}</text>
+      <text class="cell-arrow">›</text>
+    </view>
   </view>
 </view>
 

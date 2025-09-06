@@ -56,20 +56,70 @@ Page({
    */
   async validateInvite(sid, token) {
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'session',
-        data: { action: 'validate', sid, token }
+      // 先测试云函数是否正常工作
+      console.log('[JOIN] 测试云函数连接...');
+      try {
+        const testRes = await wx.cloud.callFunction({
+          name: 'session',
+          data: { action: 'test' }
+        });
+        console.log('[JOIN] 云函数测试结果:', testRes.result);
+      } catch (testError) {
+        console.error('[JOIN] 云函数测试失败:', testError);
+      }
+
+      // 再尝试调试：列出数据库中的session
+      console.log('[JOIN] 尝试调试查询数据库中的sessions...');
+      try {
+        const debugRes = await wx.cloud.callFunction({
+          name: 'session',
+          data: { action: 'debug_list' }
+        });
+        console.log('[JOIN] 数据库中的sessions:', debugRes.result);
+        if (!debugRes.result.ok) {
+          console.error('[JOIN] 数据库查询失败，详细错误:', JSON.stringify(debugRes.result.error, null, 2));
+        }
+      } catch (debugError) {
+        console.log('[JOIN] 调试查询失败:', debugError);
+      }
+
+      // 先检查会话状态
+      const getRes = await wx.cloud.callFunction({
+        name: 'sessions',
+        data: { action: 'get', sid }
       });
 
-      console.log('[JOIN] validate result:', res);
+      console.log('[JOIN] get session result:', getRes);
 
-      if (res.result.ok) {
-        this.setData({ 
-          canJoin: true, 
-          loading: false 
+      if (getRes.result.ok) {
+        const session = getRes.result.session;
+        // 验证token
+        if (String(session.token) !== String(token)) {
+          this.handleValidateError('TOKEN_MISMATCH', '邀请码不正确');
+          return;
+        }
+        if (session.status !== 'open') {
+          this.handleValidateError('ENDED', '牌局已结束');
+          return;
+        }
+        
+        // 验证成功，调用 join 加入牌局
+        const joinRes = await wx.cloud.callFunction({
+          name: 'sessions',
+          data: { action: 'join', sid, token }
         });
+        
+        if (joinRes.result.ok) {
+          console.log('[JOIN] 验证成功，自动加入牌局');
+          this.autoJoinSession();
+        } else {
+          const error = joinRes.result.error || {};
+          console.log('[JOIN] join failed, error code:', error.code, 'msg:', error.msg);
+          this.handleValidateError(error.code, error.msg);
+        }
       } else {
-        const error = res.result.error || {};
+        const error = getRes.result.error || {};
+        console.log('[JOIN] get session failed, error code:', error.code, 'msg:', error.msg);
         this.handleValidateError(error.code, error.msg);
       }
     } catch (error) {
@@ -85,30 +135,79 @@ Page({
    * 处理验证错误
    */
   handleValidateError(code, defaultMsg) {
-    let errorMsg = defaultMsg || '无法加入牌局';
-    
+    let msg;
     switch (code) {
       case 'NOT_FOUND':
-        errorMsg = '牌局不存在或已结束';
-        break;
-      case 'ENDED':
-        errorMsg = '牌局已结束，无法加入';
+      case 'SESSION_CLOSED':
+        msg = '牌局不存在或已结束';
         break;
       case 'TOKEN_MISMATCH':
-        errorMsg = '邀请码不正确';
+        msg = '邀请码不正确，请重新获取';
+        break;
+      case 'INVITE_TOKEN_EXPIRED':
+        msg = '邀请码已过期，请房主重新分享';
+        break;
+      case 'ENDED':
+        msg = '牌局已结束，无法加入';
         break;
       default:
-        errorMsg = defaultMsg || '无法加入牌局';
+        msg = '无法加入牌局，请稍后再试';
     }
     
-    this.setData({ 
-      error: errorMsg,
-      loading: false 
-    });
+    this.setData({ error: msg, loading: false });
   },
 
   /**
-   * 加入牌局
+   * 自动加入牌局（验证成功后直接调用）
+   */
+  async autoJoinSession() {
+    const { sid, token } = this.data;
+    
+    wx.showLoading({ title: '正在加入牌局...' });
+    
+    try {
+      const app = getApp();
+      
+      // 将会话注入本地（与 invite/create 结构对齐）
+      const exists = (app.globalData.sessions || []).some(s => String(s.id) === String(sid));
+      if (!exists) {
+        const session = {
+          id: sid,
+          participants: [], 
+          taiSwitch: true, 
+          rounds: [],
+          multiplier: 1, 
+          createdAt: new Date().toISOString(),
+          status: 'ongoing', 
+          finalScores: null, 
+          inviteToken: token
+        };
+        app.globalData.sessions.push(session);
+        app.saveSessions();
+      }
+      
+      app.globalData.currentSessionId = sid;
+      
+      wx.hideLoading();
+      // 直接跳转到记分页面，无需停留在确认页
+      wx.redirectTo({ 
+        url: '/pages/scoring/scoring?sessionId=' + encodeURIComponent(sid) 
+      });
+      
+    } catch (error) {
+      wx.hideLoading();
+      console.error('[JOIN] 自动加入牌局失败:', error);
+      // 如果自动加入失败，回退到手动模式
+      this.setData({ 
+        canJoin: true, 
+        loading: false,
+        error: '自动加入失败，请手动点击加入'
+      });
+    }
+  },
+
+  /**
+   * 加入牌局（保留原方法作为备用）
    */
   async joinSession() {
     if (!this.data.canJoin) {

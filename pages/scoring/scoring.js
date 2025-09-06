@@ -415,7 +415,7 @@ Page({
   /**
    * 分享当前牌局
    */
-  onShareAppMessage() {
+  async onShareAppMessage() {
     const { sessionId } = this.data;
     
     if (!sessionId) {
@@ -426,10 +426,32 @@ Page({
       };
     }
 
-    // 获取当前会话的邀请token
+    // 获取当前会话的邀请 token
     const sessions = app.globalData.sessions || [];
-    const currentSession = sessions.find(s => s.id === sessionId);
-    const inviteToken = currentSession?.inviteToken || sessionId;
+    const currentSession = sessions.find(s => String(s.id) === String(sessionId));
+    let inviteToken = currentSession && currentSession.inviteToken;
+
+    // 如果本地无 token，则尝试从云端查询会话信息
+    if (!inviteToken) {
+      try {
+        const res = await wx.cloud.callFunction({ name: 'session', data: { action: 'get', sid: sessionId } });
+        if (res.result && res.result.session && res.result.session.status === 'open') {
+          inviteToken = res.result.session.token || '';
+        }
+      } catch (e) {
+        console.warn('[SHARE] 获取 session token 失败', e);
+      }
+    }
+
+    // 如果仍无 token，则提示用户必须通过邀请页面创建
+    if (!inviteToken) {
+      wx.showToast({ title: '请先通过邀请页面创建牌局再分享', icon: 'none' });
+      return {
+        title: config.share.defaultTitle,
+        path: config.pages.invite,
+        imageUrl: config.share.defaultImageUrl
+      };
+    }
 
     return {
       title: `一起来玩麻将计分吧！房间号：${inviteToken.toString().toUpperCase()}`,

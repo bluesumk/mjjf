@@ -95,6 +95,9 @@ class AuthManager {
         this.saveUserInfo(userInfo.userInfo);
         this.isLoggedIn = true;
         
+        // 同步到 userInfo 键
+        wx.setStorageSync('userInfo', userInfo.userInfo);
+        
         return {
           success: true,
           userInfo: userInfo.userInfo

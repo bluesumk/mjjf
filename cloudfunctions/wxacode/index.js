@@ -1,6 +1,8 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV, traceUser: true });
 
+const db = cloud.database();
+const cacheCollection = db.collection('wxacode_cache');
 const log = (...args) => console.log('[wxacode]', ...args);
 
 exports.main = async (event = {}) => {
@@ -24,6 +26,24 @@ exports.main = async (event = {}) => {
   // —— 放大入参日志 —— //
   log('input', { page, scene, checkPath, envVersion, sid, token, width, storage });
 
+  // 缓存检查
+  const cacheKey = `${sid}-${token}`;
+  try {
+    const cached = await cacheCollection.doc(cacheKey).get();
+    if (cached.data && cached.data.expireTime > new Date()) {
+      log('cache hit', cacheKey);
+      return { 
+        ok: true, 
+        url: cached.data.url,
+        base64: cached.data.base64,
+        via: 'cache',
+        fromCache: true
+      };
+    }
+  } catch (e) {
+    log('cache miss', cacheKey);
+  }
+
   const uploadAndSign = async (buf, prefix = '') => {
     const cloudPath = `wxacode/${prefix}${sid}-${token}-${Date.now()}.png`;
     const up = await cloud.uploadFile({ cloudPath, fileContent: buf });
@@ -41,9 +61,45 @@ exports.main = async (event = {}) => {
 
     if (!storage) {
       const base64 = 'data:image/png;base64,' + buf.toString('base64');
+      
+      // 缓存 base64 结果
+      try {
+        await cacheCollection.doc(cacheKey).set({
+          data: {
+            base64,
+            expireTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24小时过期
+            createdAt: new Date(),
+            sid,
+            token
+          }
+        });
+        log('cached base64', cacheKey);
+      } catch (cacheError) {
+        log('cache save failed', cacheError);
+      }
+      
       return { ok: true, page, scene, base64, via: 'getUnlimited' };
     }
+    
     const { fileID, url } = await uploadAndSign(buf);
+    
+    // 缓存 URL 结果
+    try {
+      await cacheCollection.doc(cacheKey).set({
+        data: {
+          url,
+          fileID,
+          expireTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24小时过期
+          createdAt: new Date(),
+          sid,
+          token
+        }
+      });
+      log('cached url', cacheKey);
+    } catch (cacheError) {
+      log('cache save failed', cacheError);
+    }
+    
     return { ok: true, page, scene, url, fileID, via: 'getUnlimited' };
 
   } catch (e) {

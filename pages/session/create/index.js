@@ -366,7 +366,7 @@ Page({
       };
     }
 
-    const path = `/pages/invite/join/index?meetingId=${encodeURIComponent(sid)}&invite=${encodeURIComponent(token)}`;
+    const path = `/pages/invite/join/index?sid=${encodeURIComponent(sid)}&token=${encodeURIComponent(token)}`;
     console.log('[SHARE] 分享路径:', path);
     
     return {
@@ -383,6 +383,9 @@ Page({
     wx.showShareMenu({ 
       withShareTicket: true, 
       menus: config.share.menus 
+    });
+    wx.updateShareMenu({ 
+      withShareTicket: true 
     });
   },
 
