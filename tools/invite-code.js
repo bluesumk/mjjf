@@ -71,6 +71,21 @@ const parseScene = (scene) => {
   try {
     if (!scene) return null;
     
+    // 兼容点分短码格式："xxxxxx.yyyyyy"
+    // 若不存在键值对但包含一个点分隔符，则按点分解析
+    if (scene.indexOf('=') === -1 && scene.indexOf('&') === -1 && scene.indexOf('.') > 0) {
+      const parts = scene.split('.');
+      if (parts.length === 2) {
+        const s = parts[0];
+        const t = parts[1];
+        // 粗略校验：只允许字母数字，长度合理（≤16）
+        const isAlnum = (x) => /^[0-9a-zA-Z]+$/.test(x);
+        if (isAlnum(s) && isAlnum(t) && s.length <= 16 && t.length <= 16) {
+          return { s, t };
+        }
+      }
+    }
+
     // 手写解析，兼容低版本基础库
     const res = {};
     scene.split('&').forEach(kv => {

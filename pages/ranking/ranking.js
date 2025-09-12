@@ -10,7 +10,8 @@ Page({
   },
 
   onLoad(options) {
-    const sessionId = parseInt(options.sessionId);
+    // 保持原始类型，在查找时进行兼容处理
+    const sessionId = options.sessionId;
     this.setData({ sessionId });
     this.loadSessionData();
   },
@@ -21,7 +22,8 @@ Page({
   loadSessionData() {
     const sessionId = this.data.sessionId;
     const sessions = app.globalData.sessions;
-    const session = sessions.find(s => s.id === sessionId);
+    // 兼容字符串和数字类型的sessionId，使用宽松比较
+    const session = sessions.find(s => String(s.id) === String(sessionId));
     
     if (!session) {
       wx.showToast({ title: '牌局不存在', icon: 'error' });

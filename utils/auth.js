@@ -173,22 +173,9 @@ class AuthManager {
             resolve({ success: false, error: error.errMsg || '获取用户信息失败' });
           }
         });
-      } else if (wx.getUserInfo) {
-        // 低版本兼容：使用 getUserInfo（已废弃但可作为降级方案）
-        console.warn('当前版本不支持getUserProfile，使用降级方案');
-        wx.getUserInfo({
-          success: (res) => {
-            console.log('降级获取用户信息成功:', res.userInfo);
-            resolve({ success: true, userInfo: res.userInfo, isLegacy: true });
-          },
-          fail: (error) => {
-            console.log('降级获取用户信息失败:', error);
-            resolve({ success: false, error: error.errMsg || '获取用户信息失败' });
-          }
-        });
       } else {
-        // 完全不支持的版本
-        console.error('当前微信版本过低，不支持用户信息获取');
+        // 移除旧版 wx.getUserInfo 降级逻辑，避免使用已废弃接口
+        console.error('当前微信版本过低，不支持 getUserProfile');
         resolve({ 
           success: false, 
           error: '当前微信版本过低，请更新微信后重试',

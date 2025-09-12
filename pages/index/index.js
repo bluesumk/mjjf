@@ -28,6 +28,7 @@ Page({
   },
 
   onShow() {
+    // 每次显示时重新加载数据，确保显示最新的用户信息
     this.loadData();
     try { 
       wx.showShareMenu({ 
@@ -43,125 +44,42 @@ Page({
    * 检查授权状态并加载数据
    */
   async checkAuthAndLoadData() {
-    try {
-      const authManager = app.globalData.authManager;
-      const loginResult = await authManager.login();
-      
-      if (loginResult.success) {
-        // 已授权，直接加载数据
-        console.log('用户已授权，加载首页数据');
-        this.loadData();
-      } else if (loginResult.needAuth) {
-        // 需要授权，显示授权弹窗
-        console.log('用户需要授权');
-        this.showAuthModal();
-      }
-    } catch (error) {
-      console.error('授权检查失败:', error);
-      // 错误时使用默认流程
-      this.loadData();
-    }
+    // 直接加载数据，不再进行授权检查
+    // 用户可以通过"我的 → 修改资料"来更新头像和昵称
+    this.loadData();
   },
 
-  /**
-   * 用户点击授权按钮（推荐方式）
-   */
-  async onAuthorizeTap() {
-    try {
-      const authManager = app.globalData.authManager;
-      const authResult = await authManager.requestUserAuth();
-      
-      if (authResult.success) {
-        if (authResult.isDefault) {
-          wx.showToast({ 
-            title: '已使用默认身份', 
-            icon: 'none',
-            duration: 2000
-          });
-        } else {
-          wx.showToast({ 
-            title: '授权成功', 
-            icon: 'success',
-            duration: 1500
-          });
-        }
-        // 重新加载数据以更新UI
-        this.loadData();
-      }
-    } catch (error) {
-      console.error('授权失败:', error);
-      wx.showToast({ 
-        title: '授权失败，请重试', 
-        icon: 'none' 
-      });
-    }
-  },
 
-  /**
-   * 显示授权弹窗（保留兼容，但建议改为按钮点击）
-   */
-  showAuthModal() {
-    // 推荐：直接调用授权，不使用 showModal
-    this.onAuthorizeTap();
-  },
-
-  /**
-   * 执行授权
-   */
-  async performAuth() {
-    try {
-      const authManager = app.globalData.authManager;
-      const authResult = await authManager.requestUserAuth();
-      
-      if (authResult.success) {
-        if (authResult.isDefault) {
-          wx.showToast({ 
-            title: '已使用默认身份', 
-            icon: 'none',
-            duration: 2000
-          });
-        } else {
-          wx.showToast({ 
-            title: '授权成功', 
-            icon: 'success',
-            duration: 1500
-          });
-        }
-      }
-    } catch (error) {
-      console.error('授权失败:', error);
-      wx.showToast({ 
-        title: '授权失败，使用默认身份', 
-        icon: 'none' 
-      });
-      this.useDefaultUser();
-    }
-  },
-
-  /**
-   * 使用默认用户
-   */
-  useDefaultUser() {
-    const authManager = app.globalData.authManager;
-    const defaultUserInfo = {
-      nickName: '弓长',
-      avatarUrl: '/assets/avatar-placeholder.png',
-      isDefault: true
-    };
-    authManager.saveUserInfoPublic(defaultUserInfo);
-  },
 
   /**
    * 加载首页数据
    */
-  loadData() {
-    // 获取当前用户信息
-    const authManager = app.globalData.authManager;
-    const nickname = authManager.getNickname();
-    const avatarUrl = authManager.getAvatarUrl();
+  async loadData() {
+    // 优先从 globalData.userInfo 获取最新用户信息
+    const userInfo = app.globalData.userInfo || wx.getStorageSync('userInfo') || {};
+    const nickname = userInfo.nickName || '微信用户';
+    let avatarUrl = userInfo.avatarUrl || '/assets/avatar-placeholder.png';
     
     const now = new Date();
     const currentMonth = `${now.getFullYear()}年${now.getMonth() + 1}月`;
+    
+    // 头像临时URL刷新：若存在 avatarFileID，则实时获取新的 tempFileURL，避免 403 过期
+    try {
+      const fileID = userInfo.avatarFileID;
+      if (fileID && wx.cloud && wx.cloud.getTempFileURL) {
+        const { fileList } = await wx.cloud.getTempFileURL({ fileList: [fileID] });
+        const freshUrl = (fileList && fileList[0] && fileList[0].tempFileURL) || '';
+        if (freshUrl) {
+          avatarUrl = freshUrl;
+          // 更新全局数据中的头像URL
+          const merged = Object.assign({}, userInfo, { avatarUrl: freshUrl });
+          app.globalData.userInfo = merged;
+          try { wx.setStorageSync('userInfo', merged); } catch (_) {}
+        }
+      }
+    } catch (e) {
+      console.warn('[INDEX] 刷新头像临时URL失败:', e);
+    }
     
     this.setData({
       nickname: nickname,

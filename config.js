@@ -40,7 +40,7 @@ const config = {
   // 分享配置
   share: {
     defaultTitle: '麻将记分',
-    defaultImageUrl: '/assets/share-card.png',
+    defaultImageUrl: '/assets/app-logo.png',
     menus: ['shareAppMessage', 'shareTimeline']
   },
 

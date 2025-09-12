@@ -10,6 +10,7 @@ Page({
 
   onLoad(options) {
     if (options.sessionId) {
+      // 保持原始字符串类型，因为系统中存在字符串和数字两种类型的sessionId
       this.setData({ sessionId: options.sessionId });
       this.loadGameData();
     } else {
@@ -24,7 +25,8 @@ Page({
   loadGameData() {
     const { sessionId } = this.data;
     const sessions = app.globalData.sessions || [];
-    const session = sessions.find(s => s.id == sessionId);
+    // 兼容字符串和数字类型的sessionId，使用宽松比较
+    const session = sessions.find(s => String(s.id) === String(sessionId));
     
     if (!session) {
       wx.showToast({ title: '牌局不存在', icon: 'error' });

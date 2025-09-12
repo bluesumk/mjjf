@@ -592,7 +592,7 @@
 .modal-container {
   width: 80%;
   max-width: 400rpx;
-  padding: 32rpx;
+  padding: 32rpx 24rpx;
   animation: bounceIn 0.5s ease;
 }
 
@@ -611,13 +611,17 @@
 }
 
 .multiplier-input {
-  width: 100%;
-  padding: 16rpx;
+  width: calc(100% - 32rpx);
+  max-width: 300rpx;
+  padding: 16rpx 20rpx;
+  border: 2rpx solid var(--border-color);
   border-radius: 8rpx;
   font-size: 32rpx;
   text-align: center;
   font-weight: 600;
-  margin-bottom: 12rpx;
+  margin: 0 auto 12rpx auto;
+  display: block;
+  box-sizing: border-box;
 }
 
 .multiplier-tip {

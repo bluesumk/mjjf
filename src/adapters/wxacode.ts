@@ -32,7 +32,7 @@ const CONFIG = {
   CACHE_EXPIRE: 7 * 24 * 60 * 60 * 1000, // 7天缓存
   MAX_RETRY: 3,                           // 最大重试次数
   RETRY_DELAYS: [100, 300, 700],          // 重试延迟（毫秒）
-  DEFAULT_PAGE: 'pages/session/join/index' // 默认页面路径
+  DEFAULT_PAGE: 'pages/invite/join/index' // 默认页面路径
 };
 
 /**

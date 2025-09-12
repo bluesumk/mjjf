@@ -2,16 +2,23 @@
 <view class="container mine-container fade-in">
   <!-- Profile Card -->
   <view class="profile-card" style="width: 708rpx; display: flex; box-sizing: border-box; position: relative; left: -20rpx; top: -28rpx">
-    <view class="profile-left">
-      <image class="avatar" src="{{avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill" />
+    <view class="profile-left" wx:if="{{user}}">
+      <image class="avatar" src="{{user.avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill" />
       <view class="meta">
-        <text class="nickname">{{nickName || '点击修改资料'}}</text>
+        <text class="nickname">{{user.nickName || '微信用户'}}</text>
+        <text class="subtitle">麻将计分达人</text>
+      </view>
+    </view>
+    <view class="profile-left" wx:else>
+      <image class="avatar" src="/assets/avatar-placeholder.png" mode="aspectFill" />
+      <view class="meta">
+        <text class="nickname">微信用户</text>
         <text class="subtitle">麻将计分达人</text>
       </view>
     </view>
     
     <button class="btn-outline" 
-            bindtap="editProfile"
+            bindtap="gotoEditProfile"
             style="width: 199rpx; display: block; box-sizing: border-box; left: 115rpx; top: -5rpx; position: relative">修改资料</button>
   </view>
 
@@ -155,7 +162,7 @@
   </view>
 
   <!-- 对手统计 -->
-  <view class="opponent-stats card" wx:if="{{stats.length > 0}}">
+  <view class="opponent-stats card" wx:if="{{stats.length > 0}}" style="position: relative; top: -85rpx;">
     <view class="stats-header">
       <text class="section-title title-medium">对手统计</text>
       <text class="stats-subtitle text-secondary">与各位玩家的对战记录</text>
@@ -179,7 +186,7 @@
   </view>
 
   <!-- 空状态 -->
-  <view class="empty-stats card" wx:else style="position: relative; left: 5rpx; top: -82rpx">
+  <view class="empty-stats card" wx:else style="position: relative; left: 4rpx; top: -85rpx">
     <view class="empty-state">
       <text class="empty-icon">📈</text>
       <text class="empty-title">暂无统计数据</text>

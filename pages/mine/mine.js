@@ -113,6 +113,24 @@ Page({
       avatarUrl: displayAvatarUrl,
       __profileReady: true
     });
+
+    // 刷新头像临时URL（统一展示层：优先使用 avatarFileID，每次进入页面时刷新临时链接，避免过期403）
+    try {
+      const fileID = userInfo && userInfo.avatarFileID;
+      if (fileID && wx.cloud && wx.cloud.getTempFileURL) {
+        const { fileList } = await wx.cloud.getTempFileURL({ fileList: [fileID] });
+        const freshUrl = (fileList && fileList[0] && fileList[0].tempFileURL) || '';
+        if (freshUrl && freshUrl !== this.data.avatarUrl) {
+          this.setData({ avatarUrl: freshUrl });
+          // 同步全局与本地缓存，避免下次仍用旧链接
+          const merged = Object.assign({}, userInfo, { avatarUrl: freshUrl });
+          app.globalData.userInfo = merged;
+          try { wx.setStorageSync('userInfo', merged); } catch (_) {}
+        }
+      }
+    } catch (e) {
+      console.warn('[MINE] 刷新头像临时URL失败:', e);
+    }
     
     console.log('[MINE] 页面数据更新完成:', {
       nickName: displayNickName,
@@ -426,57 +444,13 @@ Page({
   },
 
   /**
-   * 处理同步微信资料（优化版）
+   * 处理同步微信资料（移除，避免与编辑页冲突）
    */
   async handleSync() {
-    try {
-      const updatedUser = await app.getUserProfileAndSave();
-      
-      // 关键修复：提取并更新 nickName/avatarUrl 字段
-      const nickName = updatedUser.nickName || '';
-      const avatarUrl = updatedUser.avatarUrl || '';
-      
-      // 更新页面状态，确保按钮逻辑正确
-      this.setData({ 
-        user: updatedUser,
-        nickName: nickName,
-        avatarUrl: avatarUrl,
-        __profileReady: true
-      });
-      
-      // 同步到本地存储和全局数据
-      wx.setStorageSync(config.storageKeys.userProfile, {
-        nickName: nickName,
-        avatarUrl: avatarUrl,
-        ...updatedUser
-      });
-      
-      // 更新全局数据
-      app.globalData.userProfile = {
-        nickName: nickName,
-        avatarUrl: avatarUrl,
-        ...updatedUser
-      };
-      
-      wx.showToast({ 
-        title: '同步成功', 
-        icon: 'success',
-        duration: 1500 
-      });
-    } catch (error) {
-      console.warn('[sync] 同步失败:', error);
-      let errorMsg = '同步失败';
-      if (error.errMsg && error.errMsg.includes('auth deny')) {
-        errorMsg = '用户拒绝授权';
-      } else if (error.message && error.message.includes('getUserProfile')) {
-        errorMsg = '微信版本过低';
-      }
-      wx.showToast({ 
-        icon: 'none', 
-        title: errorMsg,
-        duration: 2000
-      });
-    }
+    // 直接跳转到编辑页面，统一使用官方接口
+    wx.navigateTo({ 
+      url: '/pages/profile/edit/index'
+    });
   },
 
   /**

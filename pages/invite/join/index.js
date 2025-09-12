@@ -56,36 +56,11 @@ Page({
    */
   async validateInvite(sid, token) {
     try {
-      // 先测试云函数是否正常工作
-      console.log('[JOIN] 测试云函数连接...');
-      try {
-        const testRes = await wx.cloud.callFunction({
-          name: 'session',
-          data: { action: 'test' }
-        });
-        console.log('[JOIN] 云函数测试结果:', testRes.result);
-      } catch (testError) {
-        console.error('[JOIN] 云函数测试失败:', testError);
-      }
-
-      // 再尝试调试：列出数据库中的session
-      console.log('[JOIN] 尝试调试查询数据库中的sessions...');
-      try {
-        const debugRes = await wx.cloud.callFunction({
-          name: 'session',
-          data: { action: 'debug_list' }
-        });
-        console.log('[JOIN] 数据库中的sessions:', debugRes.result);
-        if (!debugRes.result.ok) {
-          console.error('[JOIN] 数据库查询失败，详细错误:', JSON.stringify(debugRes.result.error, null, 2));
-        }
-      } catch (debugError) {
-        console.log('[JOIN] 调试查询失败:', debugError);
-      }
+      // 移除调试性云函数调用，降低首屏耗时
 
       // 先检查会话状态
       const getRes = await wx.cloud.callFunction({
-        name: 'sessions',
+        name: 'session',
         data: { action: 'get', sid }
       });
 
@@ -105,13 +80,22 @@ Page({
         
         // 验证成功，调用 join 加入牌局
         const joinRes = await wx.cloud.callFunction({
-          name: 'sessions',
+          name: 'session',
           data: { action: 'join', sid, token }
         });
         
         if (joinRes.result.ok) {
           console.log('[JOIN] 验证成功，自动加入牌局');
-          this.autoJoinSession();
+          // 从云端元数据提取参与者与台板开关
+          const meta = session.meta || {};
+          const participants = Array.isArray(meta.participants) ? meta.participants.filter(Boolean) : [];
+          const taiSwitch = !!meta.taiSwitch;
+          
+          // 获取云端members列表，用于同步已加入的用户
+          const members = Array.isArray(session.members) ? session.members : [];
+          console.log('[JOIN] 云端members:', members);
+          
+          this.autoJoinSession({ participants, taiSwitch, members });
         } else {
           const error = joinRes.result.error || {};
           console.log('[JOIN] join failed, error code:', error.code, 'msg:', error.msg);
@@ -160,21 +144,36 @@ Page({
   /**
    * 自动加入牌局（验证成功后直接调用）
    */
-  async autoJoinSession() {
+  async autoJoinSession(payload = {}) {
     const { sid, token } = this.data;
+    const { participants = [], taiSwitch = true, members = [] } = payload || {};
     
     wx.showLoading({ title: '正在加入牌局...' });
     
     try {
       const app = getApp();
       
+      // 同步云端members到本地participants
+      // 这里需要将openid转换为用户昵称，暂时使用云端meta中的participants
+      // 后续可以通过members列表查询用户信息来完善
+      let finalParticipants = participants.slice();
+      
+      // 如果云端有members信息，可以在这里进行更复杂的同步逻辑
+      // 目前先使用meta中的participants，确保与发起者看到的一致
+      console.log('[JOIN] 同步参与者:', { 
+        original: participants, 
+        members: members, 
+        final: finalParticipants 
+      });
+      
       // 将会话注入本地（与 invite/create 结构对齐）
-      const exists = (app.globalData.sessions || []).some(s => String(s.id) === String(sid));
-      if (!exists) {
+      const list = app.globalData.sessions || [];
+      const idx = list.findIndex(s => String(s.id) === String(sid));
+      if (idx === -1) {
         const session = {
           id: sid,
-          participants: [], 
-          taiSwitch: true, 
+          participants: finalParticipants, 
+          taiSwitch: !!taiSwitch, 
           rounds: [],
           multiplier: 1, 
           createdAt: new Date().toISOString(),
@@ -182,9 +181,16 @@ Page({
           finalScores: null, 
           inviteToken: token
         };
-        app.globalData.sessions.push(session);
-        app.saveSessions();
+        list.push(session);
+      } else {
+        // 覆盖更新本地已有临时会话，确保参与者与台版配置可见
+        const s = list[idx];
+        s.participants = (finalParticipants && finalParticipants.length > 0) ? finalParticipants.slice() : (s.participants || []);
+        s.taiSwitch = typeof taiSwitch === 'boolean' ? taiSwitch : !!s.taiSwitch;
+        s.inviteToken = token || s.inviteToken;
       }
+      app.globalData.sessions = list;
+      app.saveSessions();
       
       app.globalData.currentSessionId = sid;
       
@@ -220,36 +226,43 @@ Page({
     wx.showLoading({ title: '正在加入...' });
     
     try {
-      // 再次校验，确保有效
-      const res = await wx.cloud.callFunction({
+      // 重新获取会话，带回 meta
+      const getRes = await wx.cloud.callFunction({
         name: 'session',
-        data: { action: 'validate', sid, token }
+        data: { action: 'get', sid }
       });
-      
-      const ok = res && res.result && res.result.ok;
-      if (!ok) {
+      const doc = getRes && getRes.result && getRes.result.session;
+      if (!doc || String(doc.token) !== String(token) || doc.status !== 'open') {
         throw new Error('VALIDATE_FAIL');
       }
+      const meta = doc.meta || {};
+      const participants = Array.isArray(meta.participants) ? meta.participants.filter(Boolean) : [];
+      const taiSwitch = !!meta.taiSwitch;
       
       const app = getApp();
       
-      // 将会话注入本地（与 invite/create 结构对齐）
-      const exists = (app.globalData.sessions || []).some(s => String(s.id) === String(sid));
-      if (!exists) {
-        const session = {
+      // 写入或更新本地会话
+      const list = app.globalData.sessions || [];
+      const idx = list.findIndex(s => String(s.id) === String(sid));
+      if (idx === -1) {
+        list.push({
           id: sid,
-          participants: [], 
-          taiSwitch: true, 
+          participants: participants.slice(),
+          taiSwitch: !!taiSwitch,
           rounds: [],
-          multiplier: 1, 
+          multiplier: 1,
           createdAt: new Date().toISOString(),
-          status: 'ongoing', 
-          finalScores: null, 
+          status: 'ongoing',
+          finalScores: null,
           inviteToken: token
-        };
-        app.globalData.sessions.push(session);
-        app.saveSessions();
+        });
+      } else {
+        list[idx].participants = (participants && participants.length > 0) ? participants.slice() : (list[idx].participants || []);
+        list[idx].taiSwitch = typeof taiSwitch === 'boolean' ? taiSwitch : !!list[idx].taiSwitch;
+        list[idx].inviteToken = token || list[idx].inviteToken;
       }
+      app.globalData.sessions = list;
+      app.saveSessions();
       
       app.globalData.currentSessionId = sid;
       

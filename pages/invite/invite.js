@@ -19,6 +19,29 @@ Page({
     qrGenerating: false,
     qrError: null
   },
+  /**
+   * 将 base64 图片保存为临时文件，返回本地路径
+   */
+  saveBase64AsTempFile(base64, sid, token) {
+    return new Promise((resolve, reject) => {
+      try {
+        if (!base64) return reject(new Error('empty base64'));
+        const fs = wx.getFileSystemManager();
+        const filePath = `${wx.env.USER_DATA_PATH}/wxacode_${sid || ''}_${token || ''}.png`;
+        const pure = base64.replace(/^data:image\/(png|jpg|jpeg);base64,/, '');
+        fs.writeFile({
+          filePath,
+          data: pure,
+          encoding: 'base64',
+          success: () => resolve(filePath),
+          fail: (e) => reject(e)
+        });
+      } catch (e) {
+        reject(e);
+      }
+    });
+  },
+
 
   onLoad() {
     // 获取当前用户昵称
@@ -92,14 +115,16 @@ Page({
       try {
         console.log('[INVITE] 准备写入云端 - sid:', sessionId, 'token:', inviteToken);
         const createRes = await wx.cloud.callFunction({
-          name: 'sessions',
+          name: 'session',
           data: { 
             action: 'create', 
             sid: sessionId, 
             token: inviteToken,
-            participants: this.data.participants.map(p => p.name),
-            taiSwitch: this.data.taiSwitch,
-            meta: { tableMode: this.data?.tableMode } 
+            meta: { 
+              tableMode: this.data?.tableMode,
+              participants: this.data.participants.map(p => p.name),
+              taiSwitch: this.data.taiSwitch
+            } 
           }
         });
         console.log('[INVITE] 会话写入云端结果:', createRes);
@@ -110,6 +135,36 @@ Page({
         } else {
           console.error('[INVITE] 会话写入云端失败:', createRes.result);
           console.error('[INVITE] 详细错误信息:', JSON.stringify(createRes.result.error, null, 2));
+          // 兜底：若集合不存在，尝试初始化集合后重试一次
+          const errCode = createRes?.result?.error?.code;
+          if (errCode === -502005 || String(errCode) === '-502005') {
+            console.warn('[INVITE] sessions 集合不存在，尝试自动初始化...');
+            try {
+              await wx.cloud.callFunction({ name: 'session', data: { action: 'debug_list' } });
+              console.log('[INVITE] 集合初始化完成，重试创建会话');
+              const retry = await wx.cloud.callFunction({
+                name: 'session',
+                data: { 
+                  action: 'create', 
+                  sid: sessionId, 
+                  token: inviteToken,
+                  meta: { 
+                    tableMode: this.data?.tableMode,
+                    participants: this.data.participants.map(p => p.name),
+                    taiSwitch: this.data.taiSwitch
+                  } 
+                }
+              });
+              if (retry.result && retry.result.ok) {
+                console.log('[INVITE] 重试创建会话成功');
+                this.setData({ shareReady: true });
+              } else {
+                console.error('[INVITE] 重试创建会话失败:', retry.result);
+              }
+            } catch(initErr) {
+              console.error('[INVITE] 集合初始化失败:', initErr);
+            }
+          }
         }
       } catch (dbError) {
         console.error('[INVITE] 写入云端失败:', dbError);
@@ -147,10 +202,19 @@ Page({
           sid: this.data.sessionId,
           fromCache: cloudResult.fromCache ? 1 : 0
         });
+        let img = cloudResult.url || '';
+        if (!img && cloudResult.base64) {
+          try {
+            img = await this.saveBase64AsTempFile(cloudResult.base64, this.data.sessionId, this.data.inviteToken);
+          } catch (e) {
+            console.warn('base64 转文件失败，回退到占位图', e);
+          }
+        }
         this.setData({
-          qrCodeUrl: cloudResult.url,
+          qrCodeUrl: img,
           qrGenerating: false,
-          shareImageUrl: cloudResult.url,
+          // 仅当为 URL 时用作分享卡片，base64 写文件后的本地路径不适合作为分享卡片
+          shareImageUrl: cloudResult.url || this.data.shareImageUrl,
           shareReady: true
         });
         return;
@@ -215,10 +279,9 @@ Page({
 
       // 安全 scene：只含 0-9a-zA-Z.-_，长度≤32
       const buildScene = (sid, token) => {
-        const s1 = short(sid);
-        const s2 = short(token);
-        const scene = `${s1}.${s2}`; // 例如 "k3f1a2.b9c8d0"（去掉 & 和 =）
-        return scene.slice(0, 32);
+        // 使用原始值，长度通常在 32 以内（示例：sid 13位 + token 8位 => 26）
+        const scene = `s=${sid}&t=${token}`;
+        return scene.length > 32 ? scene.slice(0, 32) : scene;
       };
 
       const getEnvVersion = () => {
@@ -240,10 +303,10 @@ Page({
           scene,
           requestedEnvVersion,
           checkPath: false,
-          sid: short(this.data.sessionId),
-          token: short(this.data.inviteToken),
-          // 可切换：storage: false 时直接返回 base64
-          storage: true
+          sid: this.data.sessionId,
+          token: this.data.inviteToken,
+          // 性能优化：直接返回 base64，避免上传与签名耗时
+          storage: false
         }
       }).then(res => {
         console.log('[SHARE] requestedEnvVersion =', requestedEnvVersion,
@@ -356,38 +419,93 @@ Page({
       }
     });
   },
+  // 朋友圈分享（统一封面为 app-logo）
+  onShareTimeline() {
+    const { sessionId: sid, inviteToken: token, shareImageUrl } = this.data || {};
+    return {
+      title: '麻将记分',
+      imageUrl: shareImageUrl || '/assets/app-logo.png',
+      query: sid && token ? `sid=${encodeURIComponent(sid)}&token=${encodeURIComponent(token)}` : ''
+    };
+  },
 
   // QA-FIX: A3 删除重复的 onShareAppMessage 定义，保留下方统一实现
 
   /**
    * 创建对局并跳转记分页面
    */
-  startScoring() {
-    const participants = this.data.participants.map(p => p.name);
+  async startScoring() {
+    // 取当前可见的参与者名单（确保为点击时的最新值）
+    const participants = (this.data.participants || []).map(p => p.name);
     if (participants.length === 0) {
       wx.showToast({ title: '请添加参与者', icon: 'none' });
       return;
     }
 
-    // 使用已生成的sessionId或创建新的
-    const sessionId = this.data.sessionId || Date.now();
-    
-    const session = {
-      id: sessionId,
-      participants,
-      taiSwitch: this.data.taiSwitch,
-      rounds: [],
-      multiplier: 1,
-      createdAt: new Date().toISOString(),
-      status: 'ongoing',
-      finalScores: null,
-      inviteToken: this.data.inviteToken // 保存邀请令牌
-    };
-    
-    app.globalData.sessions.push(session);
-    app.globalData.currentSessionId = session.id;
-    app.saveSessions();
-    wx.navigateTo({ url: '/pages/scoring/scoring' });
+    // 使用已生成的sessionId，确保与云端session一致
+    const sessionId = this.data.sessionId;
+    if (!sessionId) {
+      wx.showToast({ title: '会话ID缺失，请重新生成邀请', icon: 'none' });
+      return;
+    }
+
+    wx.showLoading({ title: '正在启动牌局...' });
+
+    try {
+      // 1. 从云端获取最新的session信息（包含已加入的members）
+      const getRes = await wx.cloud.callFunction({
+        name: 'session',
+        data: { action: 'get', sid: sessionId }
+      });
+
+      if (!getRes.result.ok) {
+        throw new Error('获取云端会话失败');
+      }
+
+      const cloudSession = getRes.result.session;
+      const meta = cloudSession.meta || {};
+      
+      // 2. 同步云端members到本地participants
+      // 这里需要将openid转换为用户昵称，暂时使用云端meta中的participants
+      // 后续可以通过members列表查询用户信息来完善
+      const cloudParticipants = Array.isArray(meta.participants) ? meta.participants.filter(Boolean) : participants;
+      const taiSwitch = !!meta.taiSwitch;
+
+      // 3. 创建或更新本地session，使用云端数据
+      const session = {
+        id: sessionId,
+        participants: cloudParticipants,
+        taiSwitch: taiSwitch,
+        rounds: [],
+        multiplier: 1,
+        createdAt: new Date().toISOString(),
+        status: 'ongoing',
+        finalScores: null,
+        inviteToken: this.data.inviteToken
+      };
+
+      // 更新本地sessions
+      const list = app.globalData.sessions || [];
+      const dupIdx = list.findIndex(s => String(s.id) === String(sessionId));
+      if (dupIdx >= 0) {
+        list.splice(dupIdx, 1);
+      }
+      list.unshift(session);
+      app.globalData.sessions = list;
+      app.globalData.currentSessionId = session.id;
+      app.saveSessions();
+
+      wx.hideLoading();
+      wx.navigateTo({ url: '/pages/scoring/scoring' });
+      
+    } catch (error) {
+      wx.hideLoading();
+      console.error('[INVITE] startScoring error:', error);
+      wx.showToast({ 
+        title: '启动牌局失败，请重试', 
+        icon: 'none' 
+      });
+    }
   },
 
   /**
@@ -400,7 +518,7 @@ Page({
     return {
       title: `邀请你加入麻将计分，邀请码：${(token||'').toUpperCase()}`,
       path,
-      imageUrl: shareImageUrl || '/assets/share-card.png'
+      imageUrl: shareImageUrl || '/assets/app-logo.png'
     };
   },
 
@@ -408,6 +526,6 @@ Page({
    * 页面显示时开启分享
    */
   onShow() {
-    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage'] });
+    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage','shareTimeline'] });
   }
 });

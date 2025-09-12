@@ -52,6 +52,22 @@
   margin-right: 16rpx;
 }
 
+.nickname-input {
+  flex: 1;
+  font-size: 30rpx;
+  color: #333;
+  text-align: right;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin-right: 16rpx;
+}
+
+.nickname-input::placeholder {
+  color: #c0c4cc;
+}
+
 .cell-input::placeholder { 
   color: #c0c4cc; 
 }

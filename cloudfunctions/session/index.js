@@ -47,7 +47,16 @@ exports.main = async (event, context) => {
   if (action === 'get') {
     const doc = await getDoc(sid);
     if (!doc) return { ok:false, error:{code:'NOT_FOUND', msg:'session not found'} };
-    return { ok:true, session:{ sid:doc.sid, status:doc.status, meta:doc.meta||{} } };
+    return { 
+      ok:true, 
+      session:{ 
+        sid:doc.sid, 
+        token:doc.token, 
+        status:doc.status, 
+        meta:doc.meta||{}, 
+        members:doc.members||[] 
+      } 
+    };
   }
 
   if (action === 'validate') {

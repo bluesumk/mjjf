@@ -27,6 +27,7 @@ exports.main = async (event = {}) => {
   log('input', { page, scene, checkPath, envVersion, sid, token, width, storage });
 
   // 缓存检查
+  // 注意：scene 可能为 "s=xxxx&t=yyyy" 或 "xxxx.yyyy"，缓存键统一用 sid-token（短码）
   const cacheKey = `${sid}-${token}`;
   try {
     const cached = await cacheCollection.doc(cacheKey).get();
@@ -105,7 +106,7 @@ exports.main = async (event = {}) => {
   } catch (e) {
     log('getUnlimited failed', e, e.errCode, e.errMsg);
 
-    // 2) 兜底：createQRCode（使用 path=page?scene）
+    // 2) 兜底：createQRCode（使用 path=page?scene），同样遵循 storage 标志
     try {
       const path = `${page}?${scene}`;
       const resp2 = await cloud.openapi.wxacode.createQRCode({ path, width });
@@ -113,10 +114,22 @@ exports.main = async (event = {}) => {
 
       if (!storage) {
         const base64 = 'data:image/png;base64,' + buf2.toString('base64');
-        return {
-          ok: true, page, scene, base64,
-          via: 'createQRCode', reason: { code: e.errCode || e.code, msg: e.errMsg || e.message }
-        };
+        // 缓存 base64 结果
+        try {
+          await cacheCollection.doc(cacheKey).set({
+            data: {
+              base64,
+              expireTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
+              createdAt: new Date(),
+              sid,
+              token
+            }
+          });
+          log('cached base64 (fallback)', cacheKey);
+        } catch (cacheError) {
+          log('cache save failed (fallback)', cacheError);
+        }
+        return { ok: true, page, scene, base64, via: 'createQRCode', reason: { code: e.errCode || e.code, msg: e.errMsg || e.message } };
       }
       const { fileID, url } = await uploadAndSign(buf2, 'fallback-');
       return {

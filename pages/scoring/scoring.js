@@ -36,7 +36,7 @@ Page({
   /**
    * 页面加载
    */
-  onLoad(options) {
+  async onLoad(options) {
     // 优先使用URL参数中的sessionId，然后使用全局的currentSessionId
     const sessionId = options.sessionId || app.globalData.currentSessionId;
     this.setData({ sessionId });
@@ -46,7 +46,11 @@ Page({
       app.globalData.currentSessionId = options.sessionId;
     }
     
-    const session = app.globalData.sessions.find(s => s.id === sessionId);
+    // 先尝试从云端同步最新的session信息
+    await this.syncSessionFromCloud(sessionId);
+    
+    // 读取会话时始终以当前ID匹配，并容错历史缓存中同ID的旧项
+    const session = (app.globalData.sessions || []).find(s => String(s.id) === String(sessionId));
     if (session) {
       let participants = session.participants.slice();
       const hasTai = !!session.taiSwitch;
@@ -74,6 +78,52 @@ Page({
         roles
       });
       this.updateRoundNumber();
+    }
+  },
+
+  /**
+   * 从云端同步session信息
+   */
+  async syncSessionFromCloud(sessionId) {
+    if (!sessionId) return;
+    
+    try {
+      console.log('[SCORING] 同步云端session:', sessionId);
+      const getRes = await wx.cloud.callFunction({
+        name: 'session',
+        data: { action: 'get', sid: sessionId }
+      });
+
+      if (getRes.result.ok) {
+        const cloudSession = getRes.result.session;
+        const meta = cloudSession.meta || {};
+        
+        // 同步云端数据到本地
+        const cloudParticipants = Array.isArray(meta.participants) ? meta.participants.filter(Boolean) : [];
+        const taiSwitch = !!meta.taiSwitch;
+        
+        console.log('[SCORING] 云端同步数据:', { 
+          participants: cloudParticipants, 
+          taiSwitch: taiSwitch,
+          members: cloudSession.members 
+        });
+        
+        // 更新本地session
+        const list = app.globalData.sessions || [];
+        const idx = list.findIndex(s => String(s.id) === String(sessionId));
+        if (idx >= 0) {
+          // 更新现有session的participants和taiSwitch，保留其他数据
+          list[idx].participants = cloudParticipants;
+          list[idx].taiSwitch = taiSwitch;
+          app.globalData.sessions = list;
+          app.saveSessions();
+          console.log('[SCORING] 本地session已更新');
+        }
+      } else {
+        console.warn('[SCORING] 云端session获取失败:', getRes.result.error);
+      }
+    } catch (error) {
+      console.error('[SCORING] 同步云端session失败:', error);
     }
   },
 
@@ -457,6 +507,15 @@ Page({
       title: `一起来玩麻将计分吧！房间号：${inviteToken.toString().toUpperCase()}`,
       path: `${config.pages.sessionJoin}?sid=${encodeURIComponent(sessionId)}&token=${encodeURIComponent(inviteToken)}`,
       imageUrl: config.share.defaultImageUrl
+    };
+  }
+  ,
+  // 朋友圈分享
+  onShareTimeline() {
+    return {
+      title: config.share.defaultTitle,
+      imageUrl: config.share.defaultImageUrl,
+      query: ''
     };
   }
 });

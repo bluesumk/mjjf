@@ -1,19 +1,27 @@
 <!-- 表单列表 -->
 <view class="form">
   <!-- 头像行 -->
-  <view class="cell" bindtap="changeAvatar" hover-class="cell-hover">
+  <view class="cell" hover-class="cell-hover">
     <text class="cell-label">头像</text>
     <view class="cell-right">
       <image class="cell-avatar" src="{{avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill" />
+      <!-- 官方推荐：使用 open-type=chooseAvatar 直接获取微信头像。使用 catchtap 阻止冒泡到父级cell，避免重复弹出自定义菜单。 -->
+      <button open-type="chooseAvatar" bindchooseavatar="onChooseAvatarWx" catchtap="noop" class="btn-mini" hover-class="none" style="margin-left: 16rpx;">用微信头像</button>
       <text class="cell-arrow">›</text>
     </view>
   </view>
 
-  <!-- 昵称行 -->
-  <view class="cell" bindtap="changeNickname" hover-class="cell-hover">
+  <!-- 昵称行 - 使用官方 input type="nickname" -->
+  <view class="cell" hover-class="cell-hover">
     <text class="cell-label">昵称</text>
     <view class="cell-right">
-      <text class="cell-value">{{nickName || '请设置昵称'}}</text>
+      <input type="nickname" 
+             class="nickname-input" 
+             placeholder="请输入昵称" 
+             value="{{nickName}}" 
+             bindinput="onNicknameInput"
+             bindblur="onNicknameBlur"
+             maxlength="20" />
       <text class="cell-arrow">›</text>
     </view>
   </view>
