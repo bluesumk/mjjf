@@ -277,12 +277,8 @@ Page({
         catch { return (Date.now()%1e7).toString(36); }
       };
 
-      // 安全 scene：只含 0-9a-zA-Z.-_，长度≤32
-      const buildScene = (sid, token) => {
-        // 使用原始值，长度通常在 32 以内（示例：sid 13位 + token 8位 => 26）
-        const scene = `s=${sid}&t=${token}`;
-        return scene.length > 32 ? scene.slice(0, 32) : scene;
-      };
+      // 统一使用工具函数的 scene 生成
+      const buildScene = (sid, token) => inviteCodeUtils.buildScene(sid, token);
 
       const getEnvVersion = () => {
         try {
