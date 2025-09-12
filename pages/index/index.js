@@ -292,20 +292,6 @@ Page({
    * 分享功能（统一会话模式）
    */
   onShareAppMessage() {
-    const { sessionId, inviteToken } = this.data;
-    
-    if (!sessionId || !inviteToken) {
-      return { 
-        title: config.share.defaultTitle, 
-        path: config.pages.index,
-        imageUrl: config.share.defaultImageUrl
-      };
-    }
-    
-    return {
-      title: `邀请你加入麻将局（房间 ${inviteToken.toUpperCase()}）`,
-      path: `${config.pages.sessionJoin}?sid=${encodeURIComponent(sessionId)}&token=${encodeURIComponent(inviteToken)}`,
-      imageUrl: config.share.defaultImageUrl
-    };
+    return { title: config.share.defaultTitle, path: config.pages.invite, imageUrl: config.share.defaultImageUrl };
   }
 });

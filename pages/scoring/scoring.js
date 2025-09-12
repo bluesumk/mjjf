@@ -6,6 +6,8 @@ Page({
   data: {
     // 当前对局 ID
     sessionId: null,
+    // 预取的邀请 token（用于同步分享）
+    inviteToken: '',
     // 参与者列表
     participants: [],
     // 是否启用台板抽佣
@@ -118,6 +120,11 @@ Page({
           app.globalData.sessions = list;
           app.saveSessions();
           console.log('[SCORING] 本地session已更新');
+        }
+        
+        // 预取邀请 token（用于同步分享）
+        if (cloudSession.status === 'open') {
+          this.setData({ inviteToken: cloudSession.token || '' });
         }
       } else {
         console.warn('[SCORING] 云端session获取失败:', getRes.result.error);
@@ -454,7 +461,11 @@ Page({
   /**
    * 页面显示时开启分享
    */
-  onShow() {
+  async onShow() {
+    if (this.data.sessionId && !this.data.inviteToken) {
+      await this.syncSessionFromCloud(this.data.sessionId);
+    }
+    this.updateRoundNumber();
     // 开启分享功能
     wx.showShareMenu({ 
       withShareTicket: true, 
@@ -465,46 +476,18 @@ Page({
   /**
    * 分享当前牌局
    */
-  async onShareAppMessage() {
-    const { sessionId } = this.data;
-    
-    if (!sessionId) {
-      return {
-        title: config.share.defaultTitle,
-        path: config.pages.index,
-        imageUrl: config.share.defaultImageUrl
-      };
-    }
-
-    // 获取当前会话的邀请 token
-    const sessions = app.globalData.sessions || [];
-    const currentSession = sessions.find(s => String(s.id) === String(sessionId));
-    let inviteToken = currentSession && currentSession.inviteToken;
-
-    // 如果本地无 token，则尝试从云端查询会话信息
-    if (!inviteToken) {
-      try {
-        const res = await wx.cloud.callFunction({ name: 'session', data: { action: 'get', sid: sessionId } });
-        if (res.result && res.result.session && res.result.session.status === 'open') {
-          inviteToken = res.result.session.token || '';
-        }
-      } catch (e) {
-        console.warn('[SHARE] 获取 session token 失败', e);
-      }
-    }
-
-    // 如果仍无 token，则提示用户必须通过邀请页面创建
-    if (!inviteToken) {
-      wx.showToast({ title: '请先通过邀请页面创建牌局再分享', icon: 'none' });
+  onShareAppMessage() {
+    const { sessionId, inviteToken } = this.data;
+    if (!sessionId || !inviteToken) {
+      // 无可用 token 时，引导去邀请页生成（确保同步返回）
       return {
         title: config.share.defaultTitle,
         path: config.pages.invite,
         imageUrl: config.share.defaultImageUrl
       };
     }
-
     return {
-      title: `一起来玩麻将计分吧！房间号：${inviteToken.toString().toUpperCase()}`,
+      title: `一起来玩麻将计分吧！房间号：${String(inviteToken).toUpperCase()}`,
       path: `${config.pages.sessionJoin}?sid=${encodeURIComponent(sessionId)}&token=${encodeURIComponent(inviteToken)}`,
       imageUrl: config.share.defaultImageUrl
     };
