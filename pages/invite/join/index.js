@@ -88,12 +88,27 @@ Page({
           console.log('[JOIN] 验证成功，自动加入牌局');
           // 从云端元数据提取参与者与台板开关
           const meta = session.meta || {};
-          const participants = Array.isArray(meta.participants) ? meta.participants.filter(Boolean) : [];
+          let participants = Array.isArray(meta.participants) ? meta.participants.filter(Boolean) : [];
+          
+          // 兜底水合：如果参与者为空或只有1人，尝试从本地缓存回填
+          if (participants.length <= 1) {
+            try {
+              const fallback = wx.getStorageSync && wx.getStorageSync('last_invite_participants');
+              if (Array.isArray(fallback) && fallback.length > 1) {
+                console.log('[JOIN] 使用本地缓存参与者:', fallback);
+                participants = fallback;
+              }
+            } catch (e) {
+              console.warn('[JOIN] 读取本地缓存失败:', e);
+            }
+          }
+          
           const taiSwitch = !!meta.taiSwitch;
           
           // 获取云端members列表，用于同步已加入的用户
           const members = Array.isArray(session.members) ? session.members : [];
           console.log('[JOIN] 云端members:', members);
+          console.log('[JOIN] 最终参与者:', participants);
           
           this.autoJoinSession({ participants, taiSwitch, members });
         } else {
