@@ -224,10 +224,10 @@ App({
       const profileRes = await RequestManager.getUserProfile('用于显示头像与昵称');
       const userInfo = profileRes.userInfo;
       
-      // 调用云函数保存用户信息
+      // 保存到云端（新：profile.upsert，口径一致/有合法性校验）
       await RequestManager.callCloudFunction(
-        config.cloudFunctions.updateUser,
-        { userInfo },
+        config.cloudFunctions.profile,
+        { action: 'upsert', nickName: userInfo.nickName, avatarUrl: userInfo.avatarUrl },
         { loadingTitle: '同步用户信息中...' }
       );
 

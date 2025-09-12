@@ -148,7 +148,7 @@ Page({
     const { sid, token } = this.data;
     const { participants = [], taiSwitch = true, members = [] } = payload || {};
     
-    wx.showLoading({ title: '正在加入牌局...' });
+    wx.showLoading({ title: '正在加入牌局...', mask: true });
     
     try {
       const app = getApp();
@@ -223,7 +223,7 @@ Page({
 
     const { sid, token } = this.data;
     
-    wx.showLoading({ title: '正在加入...' });
+    wx.showLoading({ title: '正在加入...', mask: true });
     
     try {
       // 重新获取会话，带回 meta
@@ -274,10 +274,8 @@ Page({
     } catch (error) {
       wx.hideLoading();
       console.error('[JOIN] 加入牌局失败:', error);
-      wx.showToast({ 
-        title: '加入失败，请重试', 
-        icon: 'none' 
-      });
+      this.setData({ error: '加入失败，请稍后重试', loading: false, canJoin: true });
+      setTimeout(() => this.setData({ error: '' }), 1500);
     }
   },
 
