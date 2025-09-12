@@ -277,12 +277,8 @@ Page({
         catch { return (Date.now()%1e7).toString(36); }
       };
 
-      // 安全 scene：只含 0-9a-zA-Z.-_，长度≤32
-      const buildScene = (sid, token) => {
-        // 使用原始值，长度通常在 32 以内（示例：sid 13位 + token 8位 => 26）
-        const scene = `s=${sid}&t=${token}`;
-        return scene.length > 32 ? scene.slice(0, 32) : scene;
-      };
+      // 统一使用工具函数的 scene 生成
+      const buildScene = (sid, token) => inviteCodeUtils.buildScene(sid, token);
 
       const getEnvVersion = () => {
         try {
@@ -435,9 +431,13 @@ Page({
    * 创建对局并跳转记分页面
    */
   async startScoring() {
-    // 取当前可见的参与者名单（确保为点击时的最新值）
-    const participants = (this.data.participants || []).map(p => p.name);
-    if (participants.length === 0) {
+    // 1) 规范化参与者：兼容 string / {name} 两种结构 & 去重 & 去空
+    const participants = (this.data.participants || [])
+      .map(p => (typeof p === 'string' ? p : (p && p.name) || ''))
+      .map(s => String(s).trim())
+      .filter(Boolean);
+    const uniq = Array.from(new Set(participants));
+    if (uniq.length === 0) {
       wx.showToast({ title: '请添加参与者', icon: 'none' });
       return;
     }
@@ -471,10 +471,12 @@ Page({
       const cloudParticipants = Array.isArray(meta.participants) ? meta.participants.filter(Boolean) : participants;
       const taiSwitch = !!meta.taiSwitch;
 
+      // 2) 将参与者写入 session；并保存一份兜底缓存，供 scoring 页面水合
+      try { wx.setStorageSync('last_invite_participants', uniq); } catch(e) {}
       // 3. 创建或更新本地session，使用云端数据
       const session = {
         id: sessionId,
-        participants: cloudParticipants,
+        participants: uniq,
         taiSwitch: taiSwitch,
         rounds: [],
         multiplier: 1,

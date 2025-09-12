@@ -324,18 +324,24 @@ Page({
    * 创建对局并跳转记分页面
    */
   startScoring() {
-    const participants = this.data.participants.map(p => p.name);
-    if (participants.length === 0) {
-      wx.showToast({ title: '请添加参与者', icon: 'none' });
+    // 生成邀请信息后直接进入计分前...
+    const normalized = (this.data.participants || [])
+      .map(p => (typeof p === 'string' ? p : (p && p.name) || ''))
+      .map(s => String(s).trim())
+      .filter(Boolean);
+    const uniq = Array.from(new Set(normalized));
+    if (!uniq.length) {
+      wx.showToast({ title: '请添加参与者', icon: 'none' }); 
       return;
     }
+    try { wx.setStorageSync('last_invite_participants', uniq); } catch(e) {}
 
     // 使用已生成的sessionId
     const sessionId = this.data.sessionId;
     
     const session = {
       id: sessionId,
-      participants,
+      participants: uniq,
       taiSwitch: this.data.taiSwitch,
       rounds: [],
       multiplier: 1,

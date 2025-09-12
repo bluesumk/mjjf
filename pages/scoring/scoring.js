@@ -6,6 +6,8 @@ Page({
   data: {
     // 当前对局 ID
     sessionId: null,
+    // 预取的邀请 token（用于同步分享）
+    inviteToken: '',
     // 参与者列表
     participants: [],
     // 是否启用台板抽佣
@@ -49,8 +51,32 @@ Page({
     // 先尝试从云端同步最新的session信息
     await this.syncSessionFromCloud(sessionId);
     
-    // 读取会话时始终以当前ID匹配，并容错历史缓存中同ID的旧项
-    const session = (app.globalData.sessions || []).find(s => String(s.id) === String(sessionId));
+    // 1) 优先从内存取
+    let session = (app.globalData.sessions || []).find(s => String(s.id) === String(sessionId));
+    // 2) 兜底：内存没有则从本地存储补齐
+    if (!session) {
+      try {
+        const store = wx.getStorageSync && wx.getStorageSync('sessions');
+        if (Array.isArray(store)) {
+          session = store.find(s => String(s.id) === String(sessionId));
+        }
+      } catch (e) { /* ignore */ }
+    }
+    // 3) 若参与者仍缺失/仅1人，尝试用邀请页缓存回填（只在本端可见）
+    try {
+      if (session && (!Array.isArray(session.participants) || session.participants.length <= 1)) {
+        const fallback = wx.getStorageSync && wx.getStorageSync('last_invite_participants');
+        if (Array.isArray(fallback) && fallback.length > 1) {
+          session.participants = fallback;
+          // 写回全局与本地，保证后续页面一致
+          const idx = (app.globalData.sessions || []).findIndex(s => String(s.id) === String(sessionId));
+          if (idx >= 0) {
+            app.globalData.sessions[idx] = session;
+            app.saveSessions && app.saveSessions();
+          }
+        }
+      }
+    } catch (e) { /* ignore */ }
     if (session) {
       let participants = session.participants.slice();
       const hasTai = !!session.taiSwitch;
@@ -118,6 +144,11 @@ Page({
           app.globalData.sessions = list;
           app.saveSessions();
           console.log('[SCORING] 本地session已更新');
+        }
+        
+        // 预取邀请 token（用于同步分享）
+        if (cloudSession.status === 'open') {
+          this.setData({ inviteToken: cloudSession.token || '' });
         }
       } else {
         console.warn('[SCORING] 云端session获取失败:', getRes.result.error);
@@ -454,7 +485,11 @@ Page({
   /**
    * 页面显示时开启分享
    */
-  onShow() {
+  async onShow() {
+    if (this.data.sessionId && !this.data.inviteToken) {
+      await this.syncSessionFromCloud(this.data.sessionId);
+    }
+    this.updateRoundNumber();
     // 开启分享功能
     wx.showShareMenu({ 
       withShareTicket: true, 
@@ -465,46 +500,18 @@ Page({
   /**
    * 分享当前牌局
    */
-  async onShareAppMessage() {
-    const { sessionId } = this.data;
-    
-    if (!sessionId) {
-      return {
-        title: config.share.defaultTitle,
-        path: config.pages.index,
-        imageUrl: config.share.defaultImageUrl
-      };
-    }
-
-    // 获取当前会话的邀请 token
-    const sessions = app.globalData.sessions || [];
-    const currentSession = sessions.find(s => String(s.id) === String(sessionId));
-    let inviteToken = currentSession && currentSession.inviteToken;
-
-    // 如果本地无 token，则尝试从云端查询会话信息
-    if (!inviteToken) {
-      try {
-        const res = await wx.cloud.callFunction({ name: 'session', data: { action: 'get', sid: sessionId } });
-        if (res.result && res.result.session && res.result.session.status === 'open') {
-          inviteToken = res.result.session.token || '';
-        }
-      } catch (e) {
-        console.warn('[SHARE] 获取 session token 失败', e);
-      }
-    }
-
-    // 如果仍无 token，则提示用户必须通过邀请页面创建
-    if (!inviteToken) {
-      wx.showToast({ title: '请先通过邀请页面创建牌局再分享', icon: 'none' });
+  onShareAppMessage() {
+    const { sessionId, inviteToken } = this.data;
+    if (!sessionId || !inviteToken) {
+      // 无可用 token 时，引导去邀请页生成（确保同步返回）
       return {
         title: config.share.defaultTitle,
         path: config.pages.invite,
         imageUrl: config.share.defaultImageUrl
       };
     }
-
     return {
-      title: `一起来玩麻将计分吧！房间号：${inviteToken.toString().toUpperCase()}`,
+      title: `一起来玩麻将计分吧！房间号：${String(inviteToken).toUpperCase()}`,
       path: `${config.pages.sessionJoin}?sid=${encodeURIComponent(sessionId)}&token=${encodeURIComponent(inviteToken)}`,
       imageUrl: config.share.defaultImageUrl
     };
