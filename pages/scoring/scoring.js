@@ -51,8 +51,32 @@ Page({
     // 先尝试从云端同步最新的session信息
     await this.syncSessionFromCloud(sessionId);
     
-    // 读取会话时始终以当前ID匹配，并容错历史缓存中同ID的旧项
-    const session = (app.globalData.sessions || []).find(s => String(s.id) === String(sessionId));
+    // 1) 优先从内存取
+    let session = (app.globalData.sessions || []).find(s => String(s.id) === String(sessionId));
+    // 2) 兜底：内存没有则从本地存储补齐
+    if (!session) {
+      try {
+        const store = wx.getStorageSync && wx.getStorageSync('sessions');
+        if (Array.isArray(store)) {
+          session = store.find(s => String(s.id) === String(sessionId));
+        }
+      } catch (e) { /* ignore */ }
+    }
+    // 3) 若参与者仍缺失/仅1人，尝试用邀请页缓存回填（只在本端可见）
+    try {
+      if (session && (!Array.isArray(session.participants) || session.participants.length <= 1)) {
+        const fallback = wx.getStorageSync && wx.getStorageSync('last_invite_participants');
+        if (Array.isArray(fallback) && fallback.length > 1) {
+          session.participants = fallback;
+          // 写回全局与本地，保证后续页面一致
+          const idx = (app.globalData.sessions || []).findIndex(s => String(s.id) === String(sessionId));
+          if (idx >= 0) {
+            app.globalData.sessions[idx] = session;
+            app.saveSessions && app.saveSessions();
+          }
+        }
+      }
+    } catch (e) { /* ignore */ }
     if (session) {
       let participants = session.participants.slice();
       const hasTai = !!session.taiSwitch;
