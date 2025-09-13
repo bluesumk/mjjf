@@ -95,9 +95,23 @@ Page({
 
       // 立刻写入云端数据库
       try {
+        const participants = (this.data.participants || [])
+          .map(p => (typeof p === 'string' ? p : (p && p.name) || ''))
+          .map(s => String(s).trim())
+          .filter(Boolean);
+        const uniq = Array.from(new Set(participants));
+        
         await wx.cloud.callFunction({
           name:'session',
-          data:{ action:'create', sid:sessionId, token:inviteToken, meta:{ tableMode:this.data.tableMode } }
+          data:{ 
+            action:'create', 
+            sid:sessionId, 
+            token:inviteToken, 
+            meta:{ 
+              tableMode:this.data.tableMode, 
+              participants: uniq 
+            } 
+          }
         });
         console.log('[SESSION] create ok', sessionId, inviteToken);
       } catch (dbError) {

@@ -113,6 +113,13 @@ Page({
 
       // 立刻写入云端数据库
       try {
+        // 参与者快照：兼容 string / {name}
+        const participants = (this.data.participants || [])
+          .map(p => (typeof p === 'string' ? p : (p && p.name) || ''))
+          .map(s => String(s).trim())
+          .filter(Boolean);
+        const uniq = Array.from(new Set(participants));
+        
         console.log('[INVITE] 准备写入云端 - sid:', sessionId, 'token:', inviteToken);
         const createRes = await wx.cloud.callFunction({
           name: 'session',
@@ -122,7 +129,8 @@ Page({
             token: inviteToken,
             meta: { 
               tableMode: this.data?.tableMode,
-              participants: this.data.participants.map(p => p.name),
+              // 初次创建即写入参与者列表（后续在 startScoring() 会再次覆盖为最新名单）
+              participants: uniq,
               taiSwitch: this.data.taiSwitch
             } 
           }

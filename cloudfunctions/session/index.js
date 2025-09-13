@@ -4,9 +4,20 @@ const db = cloud.database();
 const coll = db.collection('sessions');
 const now = () => db.serverDate();
 
+// === 6位短码算法（与 tools/invite-code.js 的 toBase36_6 一致） ===
+function toBase36_6(input='') {
+  const s = String(input);
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h.toString(36).slice(-6).padStart(6, '0');
+}
+
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext();
-  const { action, sid, token, meta } = event || {};
+  const { action, sid, token, meta, s, t } = event || {};
   
   console.log('[SESSION] function called with action:', action, 'openid:', OPENID);
   console.log('[SESSION] event:', event);
@@ -23,8 +34,12 @@ exports.main = async (event, context) => {
     console.log('[SESSION] create called with sid:', sid, 'token:', token, 'openid:', OPENID);
     if (!sid || !token) return { ok:false, error:{code:'BAD_PARAM', msg:'sid/token required'} };
     const data = {
+      _id: String(sid),
       sid: String(sid),
       token: String(token),
+      // 便于短码映射
+      s6: toBase36_6(String(sid)),
+      t6: toBase36_6(String(token)),
       ownerOpenId: OPENID,
       status: 'open',
       members: [OPENID], // 创建者自动加入参与者列表
@@ -41,6 +56,19 @@ exports.main = async (event, context) => {
     } catch (e) {
       console.error('[SESSION] failed to create session:', e);
       return { ok:false, error:{code:e.errCode||'DB_SET_FAIL', msg:e.errMsg||String(e)} };
+    }
+  }
+
+  // === 短码映射：6位 s/t -> 完整 sid/token ===
+  if (action === 'lookupShort') {
+    if (!s || !t) return { ok:false, error:{code:'BAD_PARAM', msg:'s/t required'} };
+    try {
+      const r = await coll.where({ s6: String(s), t6: String(t), status: 'open' }).limit(1).get();
+      const doc = (r && r.data && r.data[0]) || null;
+      if (!doc) return { ok:false, error:{code:'NOT_FOUND', msg:'session not found by short'} };
+      return { ok:true, sid: doc.sid, token: doc.token };
+    } catch (e) {
+      return { ok:false, error:{code:'LOOKUP_FAIL', msg:String(e)} };
     }
   }
 

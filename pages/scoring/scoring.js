@@ -77,6 +77,21 @@ Page({
         }
       }
     } catch (e) { /* ignore */ }
+    
+    // B) participants 仍缺少 → 云端 meta 回填
+    (async () => {
+      try {
+        if (session && (!Array.isArray(session.participants) || session.participants.length <= 1) && wx.cloud) {
+          const res = await wx.cloud.callFunction({ name: 'session', data: { action:'get', sid: String(sessionId) } });
+          const meta = res && res.result && res.result.session && (res.result.session.meta || {});
+          if (Array.isArray(meta.participants) && meta.participants.length > 1) {
+            session.participants = meta.participants;
+            const idx = (app.globalData.sessions || []).findIndex(s => String(s.id) === String(sessionId));
+            if (idx >= 0) { app.globalData.sessions[idx] = session; app.saveSessions && app.saveSessions(); }
+          }
+        }
+      } catch(e){}
+    })();
     if (session) {
       let participants = session.participants.slice();
       const hasTai = !!session.taiSwitch;

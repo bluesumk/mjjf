@@ -26,8 +26,17 @@ Page({
       try {
         const sceneResult = inviteCodeUtils.parseScene(decodeURIComponent(options.scene));
         if (sceneResult) {
-          sid = sid || sceneResult.s;
-          token = token || sceneResult.t;
+          // 若只拿到6位短码，先云端映射成完整 sid/token
+          const s = sceneResult.s, t = sceneResult.t;
+          if ((!sid || !token) && s && t) {
+            try {
+              const mapRes = await wx.cloud.callFunction({ name: 'session', data: { action: 'lookupShort', s, t } });
+              if (mapRes && mapRes.result && mapRes.result.ok) {
+                sid = mapRes.result.sid;
+                token = mapRes.result.token;
+              }
+            } catch (e) { console.warn('[JOIN] lookupShort fail:', e); }
+          }
         }
       } catch (error) {
         console.error('[JOIN] 场景解析失败:', error);
