@@ -139,6 +139,10 @@ exports.main = async (event, context) => {
 
   if (action === 'debug_list') {
     console.log('[SESSION] debug_list action called');
+    const { allowInit } = event || {};
+    if (!allowInit) {
+      return { ok:false, error:{code:'PERMISSION_DENIED', msg:'allowInit required'} };
+    }
     try {
       console.log('[SESSION] attempting to query collection...');
       const docs = await coll.limit(10).get();

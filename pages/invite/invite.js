@@ -148,7 +148,7 @@ Page({
           if (errCode === -502005 || String(errCode) === '-502005') {
             console.warn('[INVITE] sessions 集合不存在，尝试自动初始化...');
             try {
-              await wx.cloud.callFunction({ name: 'session', data: { action: 'debug_list' } });
+              await wx.cloud.callFunction({ name: 'session', data: { action: 'debug_list', allowInit: true } });
               console.log('[INVITE] 集合初始化完成，重试创建会话');
               const retry = await wx.cloud.callFunction({
                 name: 'session',
@@ -158,7 +158,7 @@ Page({
                   token: inviteToken,
                   meta: { 
                     tableMode: this.data?.tableMode,
-                    participants: this.data.participants.map(p => p.name),
+                    participants: uniq,
                     taiSwitch: this.data.taiSwitch
                   } 
                 }
