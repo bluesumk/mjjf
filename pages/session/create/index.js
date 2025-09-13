@@ -95,9 +95,23 @@ Page({
 
       // 立刻写入云端数据库
       try {
+        const participants = (this.data.participants || [])
+          .map(p => (typeof p === 'string' ? p : (p && p.name) || ''))
+          .map(s => String(s).trim())
+          .filter(Boolean);
+        const uniq = Array.from(new Set(participants));
+        
         await wx.cloud.callFunction({
           name:'session',
-          data:{ action:'create', sid:sessionId, token:inviteToken, meta:{ tableMode:this.data.tableMode } }
+          data:{ 
+            action:'create', 
+            sid:sessionId, 
+            token:inviteToken, 
+            meta:{ 
+              tableMode:this.data.tableMode, 
+              participants: uniq 
+            } 
+          }
         });
         console.log('[SESSION] create ok', sessionId, inviteToken);
       } catch (dbError) {
@@ -174,13 +188,8 @@ Page({
         catch { return (Date.now()%1e7).toString(36); }
       };
 
-      // 安全 scene：只含 0-9a-zA-Z.-_，长度≤32
-      const buildScene = (sid, token) => {
-        const s1 = short(sid);
-        const s2 = short(token);
-        const scene = `${s1}.${s2}`; // 例如 "k3f1a2.b9c8d0"（去掉 & 和 =）
-        return scene.slice(0, 32);
-      };
+      // 统一使用工具函数的 scene 生成
+      const buildScene = (sid, token) => inviteCodeUtils.buildScene(sid, token);
 
       const getEnvVersion = () => {
         try {
@@ -201,8 +210,8 @@ Page({
           scene,
           requestedEnvVersion,
           checkPath: false,
-          sid: short(this.data.sessionId),
-          token: short(this.data.inviteToken),
+          sid: this.data.sessionId,
+          token: this.data.inviteToken,
           // 可切换：storage: false 时直接返回 base64
           storage: true
         }
@@ -324,18 +333,24 @@ Page({
    * 创建对局并跳转记分页面
    */
   startScoring() {
-    const participants = this.data.participants.map(p => p.name);
-    if (participants.length === 0) {
-      wx.showToast({ title: '请添加参与者', icon: 'none' });
+    // 生成邀请信息后直接进入计分前...
+    const normalized = (this.data.participants || [])
+      .map(p => (typeof p === 'string' ? p : (p && p.name) || ''))
+      .map(s => String(s).trim())
+      .filter(Boolean);
+    const uniq = Array.from(new Set(normalized));
+    if (!uniq.length) {
+      wx.showToast({ title: '请添加参与者', icon: 'none' }); 
       return;
     }
+    try { wx.setStorageSync('last_invite_participants', uniq); } catch(e) {}
 
     // 使用已生成的sessionId
     const sessionId = this.data.sessionId;
     
     const session = {
       id: sessionId,
-      participants,
+      participants: uniq,
       taiSwitch: this.data.taiSwitch,
       rounds: [],
       multiplier: 1,
@@ -366,7 +381,7 @@ Page({
       };
     }
 
-    const path = `/pages/invite/join/index?meetingId=${encodeURIComponent(sid)}&invite=${encodeURIComponent(token)}`;
+    const path = `/pages/invite/join/index?sid=${encodeURIComponent(sid)}&token=${encodeURIComponent(token)}`;
     console.log('[SHARE] 分享路径:', path);
     
     return {

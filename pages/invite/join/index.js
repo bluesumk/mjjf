@@ -26,8 +26,17 @@ Page({
       try {
         const sceneResult = inviteCodeUtils.parseScene(decodeURIComponent(options.scene));
         if (sceneResult) {
-          sid = sid || sceneResult.s;
-          token = token || sceneResult.t;
+          // 若只拿到6位短码，先云端映射成完整 sid/token
+          const s = sceneResult.s, t = sceneResult.t;
+          if ((!sid || !token) && s && t) {
+            try {
+              const mapRes = await wx.cloud.callFunction({ name: 'session', data: { action: 'lookupShort', s, t } });
+              if (mapRes && mapRes.result && mapRes.result.ok) {
+                sid = mapRes.result.sid;
+                token = mapRes.result.token;
+              }
+            } catch (e) { console.warn('[JOIN] lookupShort fail:', e); }
+          }
         }
       } catch (error) {
         console.error('[JOIN] 场景解析失败:', error);
@@ -88,12 +97,27 @@ Page({
           console.log('[JOIN] 验证成功，自动加入牌局');
           // 从云端元数据提取参与者与台板开关
           const meta = session.meta || {};
-          const participants = Array.isArray(meta.participants) ? meta.participants.filter(Boolean) : [];
+          let participants = Array.isArray(meta.participants) ? meta.participants.filter(Boolean) : [];
+          
+          // 兜底水合：如果参与者为空或只有1人，尝试从本地缓存回填
+          if (participants.length <= 1) {
+            try {
+              const fallback = wx.getStorageSync && wx.getStorageSync('last_invite_participants');
+              if (Array.isArray(fallback) && fallback.length > 1) {
+                console.log('[JOIN] 使用本地缓存参与者:', fallback);
+                participants = fallback;
+              }
+            } catch (e) {
+              console.warn('[JOIN] 读取本地缓存失败:', e);
+            }
+          }
+          
           const taiSwitch = !!meta.taiSwitch;
           
           // 获取云端members列表，用于同步已加入的用户
           const members = Array.isArray(session.members) ? session.members : [];
           console.log('[JOIN] 云端members:', members);
+          console.log('[JOIN] 最终参与者:', participants);
           
           this.autoJoinSession({ participants, taiSwitch, members });
         } else {
@@ -148,7 +172,7 @@ Page({
     const { sid, token } = this.data;
     const { participants = [], taiSwitch = true, members = [] } = payload || {};
     
-    wx.showLoading({ title: '正在加入牌局...' });
+    wx.showLoading({ title: '正在加入牌局...', mask: true });
     
     try {
       const app = getApp();
@@ -223,7 +247,7 @@ Page({
 
     const { sid, token } = this.data;
     
-    wx.showLoading({ title: '正在加入...' });
+    wx.showLoading({ title: '正在加入...', mask: true });
     
     try {
       // 重新获取会话，带回 meta
@@ -274,10 +298,8 @@ Page({
     } catch (error) {
       wx.hideLoading();
       console.error('[JOIN] 加入牌局失败:', error);
-      wx.showToast({ 
-        title: '加入失败，请重试', 
-        icon: 'none' 
-      });
+      this.setData({ error: '加入失败，请稍后重试', loading: false, canJoin: true });
+      setTimeout(() => this.setData({ error: '' }), 1500);
     }
   },
 

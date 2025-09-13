@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Git 自动提交脚本
+# Git 自动提交脚本 v2.0
 # 用途：一键执行完整的 git 流程，把最新改动推到远端
+# 功能：检查分支、添加文件、提交、推送、显示结果
 
 echo "🚀 开始执行 Git 自动提交流程..."
 echo "================================="
@@ -65,19 +66,31 @@ fi
 echo ""
 echo "🚀 推送到远端分支: origin/$current_branch"
 
-git push origin "$current_branch"
+# 尝试推送，失败时重试一次
+push_attempt=1
+max_attempts=2
 
-if [ $? -eq 0 ]; then
-    echo "✅ 推送成功"
-else
-    echo "❌ 推送失败"
-    exit 1
-fi
+while [ $push_attempt -le $max_attempts ]; do
+    if git push origin "$current_branch"; then
+        echo "✅ 推送成功"
+        break
+    else
+        if [ $push_attempt -eq $max_attempts ]; then
+            echo "❌ 推送失败（已重试 $max_attempts 次）"
+            echo "💡 请检查网络连接或手动执行: git push origin $current_branch"
+            exit 1
+        else
+            echo "⚠️  推送失败，正在重试... (尝试 $push_attempt/$max_attempts)"
+            sleep 2
+            push_attempt=$((push_attempt + 1))
+        fi
+    fi
+done
 
 # 6. 显示远端分支的最新 commit 信息
 echo ""
 echo "📄 远端最新提交信息："
-git log -1 --oneline
+git log -1 --oneline origin/"$current_branch" 2>/dev/null || git log -1 --oneline
 
 echo ""
 echo "🎉 Git 自动提交流程完成！"
